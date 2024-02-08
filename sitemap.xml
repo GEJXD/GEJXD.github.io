@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://example.com/2024/02/08/MIT-6-S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/</loc>
+    
+    <lastmod>2024-02-08</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/2023/08/29/2023%20SDNU%20ACM-ICPC%E9%9B%86%E8%AE%AD%E9%98%9F%E7%BA%B3%E6%96%B0%E9%80%9A%E7%9F%A5/</loc>
+    
+    <lastmod>2024-02-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://example.com/2024/01/22/C++%20Primer%20Plus(%E7%AC%AC6%E7%89%88)%20%E7%AC%AC5%E7%AB%A0%E7%BC%96%E7%A8%8B%E9%A2%98/</loc>
     
     <lastmod>2024-01-22</lastmod>
@@ -74,15 +92,6 @@
   </url>
   
   <url>
-    <loc>http://example.com/2023/08/29/2023%20SDNU%20ACM-ICPC%E9%9B%86%E8%AE%AD%E9%98%9F%E7%BA%B3%E6%96%B0%E9%80%9A%E7%9F%A5/</loc>
-    
-    <lastmod>2024-01-18</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>http://example.com/2023/09/06/The%202022%20ICPC%20Asia%20Xian%20Regional%20Contest/</loc>
     
     <lastmod>2023-09-06</lastmod>
@@ -130,7 +139,7 @@
 
   <url>
     <loc>http://example.com/</loc>
-    <lastmod>2024-01-22</lastmod>
+    <lastmod>2024-02-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -138,35 +147,42 @@
   
   <url>
     <loc>http://example.com/tags/SDNU-ICPC/</loc>
-    <lastmod>2024-01-22</lastmod>
+    <lastmod>2024-02-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/tags/atcoder/</loc>
-    <lastmod>2024-01-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://example.com/tags/modern-cpp/</loc>
-    <lastmod>2024-01-22</lastmod>
+    <lastmod>2024-02-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/tags/codeforces/</loc>
-    <lastmod>2024-01-22</lastmod>
+    <lastmod>2024-02-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/tags/modern-cpp/</loc>
+    <lastmod>2024-02-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/tags/6-S081/</loc>
+    <lastmod>2024-02-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/tags/%E6%9D%82%E8%AE%B0/</loc>
-    <lastmod>2024-01-22</lastmod>
+    <lastmod>2024-02-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -175,21 +191,28 @@
   
   <url>
     <loc>http://example.com/categories/SDNU-ICPC/</loc>
-    <lastmod>2024-01-22</lastmod>
+    <lastmod>2024-02-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/categories/%E7%AE%97%E6%B3%95%E9%A2%98%E8%A7%A3/</loc>
-    <lastmod>2024-01-22</lastmod>
+    <lastmod>2024-02-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/categories/modern-cpp/</loc>
-    <lastmod>2024-01-22</lastmod>
+    <lastmod>2024-02-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/categories/6-S081/</loc>
+    <lastmod>2024-02-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
