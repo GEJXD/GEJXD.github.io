@@ -12,4 +12,4 @@ Disallow: /js/
 Disallow: /css/
 Disallow: /links/
 
-Sitemap: http://gejxd.gitee.io/sitemap.xml
+Sitemap: http://gejxd.github.io/sitemap.xml
