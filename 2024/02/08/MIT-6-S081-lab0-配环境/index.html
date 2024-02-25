@@ -45,7 +45,7 @@
 <meta property="og:image" content="http://gejxd.github.io/img/6.S081/sleep_10.png">
 <meta property="og:image" content="http://gejxd.github.io/img/6.S081/run.png">
 <meta property="article:published_time" content="2024-02-07T22:51:39.000Z">
-<meta property="article:modified_time" content="2024-02-08T00:27:15.623Z">
+<meta property="article:modified_time" content="2024-02-25T07:19:21.887Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="6.S081">
 <meta name="twitter:card" content="summary_large_image">
@@ -390,7 +390,7 @@ id="编译显示infinite-recursion-detected">编译显示<code>infinite recursio
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">sudo pacman -S bear<br>make clean <span class="hljs-comment"># 清空上一次编译的内容</span><br>bear -- make qemu<br></code></pre></td></tr></table></figure>
 <p>然后<code>compile_commands.json</code>文件里就指明了编译所需头文件的路径：</p>
 <p><img src="/img/6.S081/compile_commands.png" srcset="/img/loading.gif" lazyload /></p>
-<h2 id="配置代码格式化可选">配置代码格式化(可选)</h2>
+<h2 id="配置代码自动调整格式可选">配置代码自动调整格式(可选)</h2>
 <p><code>xv6</code>的代码风格也太古老了，看的特别不顺眼，所以用<code>llvm</code>的代码风格魔改了一下。</p>
 <p>首先按<code>ctrl + ,</code>，进入<code>vscode</code>的设置，搜索<code>format on save</code>,打上钩，这样在按<code>ctrl + s</code>保存代码的时候就可以自动格式化代码。</p>
 <p>然后在<code>xv6</code>的根目录新建文件<code>.clang-format</code>，借用一下这个老哥的文件:https://github.com/kehanXue/google-style-clang-format/blob/master/.clang-format。把里面的<code>.clang-format</code>复制到我们的文件里面就行，<code>tab-size</code>什么的不习惯2也可以改为4。</p>
@@ -515,6 +515,12 @@ id="编译显示infinite-recursion-detected">编译显示<code>infinite recursio
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2024/02/25/MIT-6-S081-lab1-Unix%E5%AE%9E%E7%94%A8%E7%A8%8B%E5%BA%8F/" title="MIT 6.S081 lab1 Unix utilities">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MIT 6.S081 lab1 Unix utilities</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
