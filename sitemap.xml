@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://gejxd.github.io/2024/02/25/MIT-6.S081-lab1-Unix%E5%AE%9E%E7%94%A8%E7%A8%8B%E5%BA%8F/</loc>
+    
+    <lastmod>2024-02-25</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://gejxd.github.io/2024/02/25/MIT-6.S081-lab2-System%20Calls/</loc>
+    
+    <lastmod>2024-02-25</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://gejxd.github.io/googleb658d9aa2316650c.html</loc>
     
     <lastmod>2024-02-25</lastmod>
@@ -11,16 +29,7 @@
   </url>
   
   <url>
-    <loc>http://gejxd.github.io/2024/02/25/MIT-6-S081-lab1-Unix%E5%AE%9E%E7%94%A8%E7%A8%8B%E5%BA%8F/</loc>
-    
-    <lastmod>2024-02-25</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://gejxd.github.io/2024/02/08/MIT-6-S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/</loc>
+    <loc>http://gejxd.github.io/2024/02/08/MIT-6.S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/</loc>
     
     <lastmod>2024-02-25</lastmod>
     
