@@ -256,13 +256,74 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/02/25/MIT-6.S081-lab2-System%20Calls/" target="_self">
+        <a href="/2024/03/13/MIT-6.S081-lab03/" target="_self">
+          MIT 6.S081 lab3：page tables
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/13/MIT-6.S081-lab03/" target="_self">
+        <div>
+          lab3 - page table Speed up system calls (easy) 简单说一下要我们干什么：查询进程PID时，需要保存当前用户进程的数据，切换到内核态，调用getpid()函数后把结果传回到用户态。 由于PID在进程创建开始就已经确定了，所以可以使用一块内核态和用户态共享的只读的内存，这样就可以直接在用户态读取了。我们只需要用页表映射到这块内存即可。 开始这个实验之前，强
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-03-13 18:20" pubdate>
+              2024-03-13
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/6-S081/">#6.S081</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/02/25/MIT-6.S081-lab02/" target="_self">
           MIT 6.S081 lab2：System Calls
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab2-System%20Calls/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab02/" target="_self">
         <div>
           写完Lab2先复习高数去了。 System call tracing (moderate) 自己实现一个系统调用，能够追踪打印其他系统调用。 看完要求后完全是懵的，寻思这不会lab2就要徒手撸汇编什么的吧。然后 仔细看了看hints加上其他人的提示，才知道是在内核中修改。。。 简单说一下xv6执行系统调用的过程。所有的系统调用都有一个标识符， 定义在kernel/syscall.h文件里面: 12
         </div>
@@ -317,13 +378,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/02/25/MIT-6.S081-lab1-Unix%E5%AE%9E%E7%94%A8%E7%A8%8B%E5%BA%8F/" target="_self">
+        <a href="/2024/02/25/MIT-6.S081-lab01/" target="_self">
           MIT 6.S081 lab1：Unix utilities
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab1-Unix%E5%AE%9E%E7%94%A8%E7%A8%8B%E5%BA%8F/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab01/" target="_self">
         <div>
           lab写完了好久，一直懒得写博，正好开学前两天没事干更一下。 Sleep (easy)  实验里的hints很重要，跟着hints一步一步的实现就好。  从user/echo.c文件可以看到，C语言中获取命令行参数只需要在main 函数里面加上int argc, char *argv[]就行了。其中argc表示参数的 数量，argv是二维字符串数组，表示每个参数的内容。 例如在cmd输入echo
         </div>
@@ -792,67 +853,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/%E6%9D%82%E8%AE%B0/">#杂记</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2023/09/06/The%202022%20ICPC%20Asia%20Xian%20Regional%20Contest/" target="_self">
-          The 2022 ICPC Asia Xian Regional Contest
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2023/09/06/The%202022%20ICPC%20Asia%20Xian%20Regional%20Contest/" target="_self">
-        <div>
-          我好菜啊
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2023-09-06 18:11" pubdate>
-              2023-09-06
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E7%AE%97%E6%B3%95%E9%A2%98%E8%A7%A3/" class="category-chain-item">算法题解</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/codeforces/">#codeforces</a>
             
           </div>
         

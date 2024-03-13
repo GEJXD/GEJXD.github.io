@@ -6,7 +6,7 @@
   <link href="http://gejxd.github.io/atom.xml" rel="self"/>
   
   <link href="http://gejxd.github.io/"/>
-  <updated>2024-02-25T16:08:09.020Z</updated>
+  <updated>2024-03-13T10:24:35.707Z</updated>
   <id>http://gejxd.github.io/</id>
   
   <author>
@@ -17,9 +17,35 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>MIT 6.S081 lab3：page tables</title>
+    <link href="http://gejxd.github.io/2024/03/13/MIT-6.S081-lab03/"/>
+    <id>http://gejxd.github.io/2024/03/13/MIT-6.S081-lab03/</id>
+    <published>2024-03-13T10:20:32.000Z</published>
+    <updated>2024-03-13T10:24:35.707Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="lab3---page-table">lab3 - page table</h1><h2 id="speed-up-system-calls-easy">Speed up system calls (easy)</h2><p>简单说一下要我们干什么：查询进程PID时，需要保存当前用户进程的数据，切换到内核态，调用<code>getpid()</code>函数后把结果传回到用户态。</p><p>由于<code>PID</code>在进程创建开始就已经确定了，所以可以使用一块内核态和用户态共享的只读的内存，这样就可以直接在用户态读取了。我们只需要用页表映射到这块内存即可。</p><p>开始这个实验之前，强烈建议先看看<code>kernel/proc.c</code>中的<code>allocproc</code>函数、<code>freeproc</code>函数、<code>proc_pagetable</code>函数,和<code>user/ulib.c</code>中的<code>ugetpid</code>函数。下面会先解释一下这几个函数都干了什么。</p><h3 id="allocproc"><code>allocproc()</code>:</h3><p>首先就是一个循环，遍历所有进程，遇到没分配的进程(也就是<code>state = UNUSED</code>),然后跳转到found。found分配内存给<code>proc</code>的成员变量。</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">if</span> ((p-&gt;trapframe = (<span class="hljs-keyword">struct</span> trapframe *)kalloc()) == <span class="hljs-number">0</span>) &#123;<br>        freeproc(p);<br>        release(&amp;p-&gt;lock);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br>p-&gt;pagetable = proc_pagetable(p);<br><span class="hljs-keyword">if</span> (p-&gt;pagetable == <span class="hljs-number">0</span>) &#123;<br>    freeproc(p);<br>    release(&amp;p-&gt;lock);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure><h3 id="freeproc"><code>freeproc()</code>：</h3><p>就是把<code>allocproc</code>里面分配的内存都销毁。没什么好说的。需要注意的就是，<code>trapframe</code>除了直接销毁外，还需要把页表里面的映射也一起取消(在<code>proc_freepagetable()</code>函数)。</p><h3 id="proc_pagetable"><code>proc_pagetable()</code>:</h3><p>首先使用<code>uvmcreate</code>创建一个页表，然后调用<code>mappages</code>来建立虚拟内存到物理内存的映射。</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">pagetable_t</span> pagetable;<br><br><span class="hljs-comment">// An empty page table.</span><br>pagetable = uvmcreate();<br><span class="hljs-keyword">if</span> (pagetable == <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br><br> <span class="hljs-comment">// map the trapframe just below TRAMPOLINE, for trampoline.S.</span><br><span class="hljs-keyword">if</span> (mappages(pagetable, TRAPFRAME, PGSIZE, (uint64)(p-&gt;trapframe),<br>             PTE_R | PTE_W) &lt; <span class="hljs-number">0</span>) &#123;<br>    uvmunmap(pagetable, TRAMPOLINE, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>    uvmfree(pagetable, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure><p>可以看到，映射的物理地址是<code>proc</code>里面的实例，所以显然我们需要在<code>struct proc</code>里新建一个成员变量。</p><h3 id="ugetpid">ugetpid()</h3><p>这个函数很简单，就两行。首先从虚拟地址为<code>USYSCALL</code>的内存中读取<code>uysycall</code>，然后直接从<code>usyscall</code>中读取出<code>pid</code>。很显然，我们需要在<code>proc_pagetable</code>中调用<code>mappages()</code>来建立这个映射。</p><h3 id="solution">solution</h3><p>在<code>kernel/proc.h</code>的<code>struct proc</code>添加成员变量：</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> &#123;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">usyspage</span>;</span><br>&#125;<br></code></pre></td></tr></table></figure><p>在<code>kernel/proc.c</code>中的<code>allocproc</code>中给<code>p-&gt;usyspage</code>分配空间并初始化：</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">// lab3 - execcise 1 - hint 2</span><br><span class="hljs-comment">// Allocate a usyscall page</span><br><span class="hljs-keyword">if</span> ((p-&gt;usyspage = (<span class="hljs-keyword">struct</span> usyscall *)kalloc()) == <span class="hljs-number">0</span>) &#123;<br>    freeproc(p);<br>    release(&amp;p-&gt;lock);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br>p-&gt;usyspage-&gt;pid = p-&gt;pid;<br></code></pre></td></tr></table></figure><p>在<code>proc_pagetable</code>中建立页表映射:</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C"> <span class="hljs-comment">// lab3 - exercise 1 - hint 1 &amp; hint 2</span><br><span class="hljs-comment">// map USYSCALL to struct usyscall, and</span><br><span class="hljs-comment">// initialize it to PID of the current process</span><br><span class="hljs-keyword">if</span> (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p-&gt;usyspage)<br>             , PTE_R | PTE_U) &lt; <span class="hljs-number">0</span>) &#123;<br>    uvmunmap(pagetable, USYSCALL, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>    uvmfree(pagetable, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure><p>然后在<code>freeproc</code>中销毁内存：</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">if</span> (p-&gt;usyspage)<br>    kfree((<span class="hljs-type">void</span>*)p-&gt;usyspage);<br>p-&gt;usyspage = <span class="hljs-number">0</span>;<br></code></pre></td></tr></table></figure><p>在<code>proc_freepagetable</code>清空页表映射:</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs C">uvmunmap(pagetable, USYSCALL, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;lab3---page-table&quot;&gt;lab3 - page table&lt;/h1&gt;
+&lt;h2 id=&quot;speed-up-system-calls-easy&quot;&gt;Speed up system calls (easy)&lt;/h2&gt;
+&lt;p&gt;简单说一下要我们干什么：查询进程P</summary>
+      
+    
+    
+    
+    <category term="6.S081" scheme="http://gejxd.github.io/categories/6-S081/"/>
+    
+    
+    <category term="6.S081" scheme="http://gejxd.github.io/tags/6-S081/"/>
+    
+  </entry>
+  
+  <entry>
     <title>MIT 6.S081 lab2：System Calls</title>
-    <link href="http://gejxd.github.io/2024/02/25/MIT-6.S081-lab2-System%20Calls/"/>
-    <id>http://gejxd.github.io/2024/02/25/MIT-6.S081-lab2-System%20Calls/</id>
+    <link href="http://gejxd.github.io/2024/02/25/MIT-6.S081-lab02/"/>
+    <id>http://gejxd.github.io/2024/02/25/MIT-6.S081-lab02/</id>
     <published>2024-02-25T03:30:22.000Z</published>
     <updated>2024-02-25T16:08:09.020Z</updated>
     
@@ -46,8 +72,8 @@
   
   <entry>
     <title>MIT 6.S081 lab1：Unix utilities</title>
-    <link href="http://gejxd.github.io/2024/02/25/MIT-6.S081-lab1-Unix%E5%AE%9E%E7%94%A8%E7%A8%8B%E5%BA%8F/"/>
-    <id>http://gejxd.github.io/2024/02/25/MIT-6.S081-lab1-Unix%E5%AE%9E%E7%94%A8%E7%A8%8B%E5%BA%8F/</id>
+    <link href="http://gejxd.github.io/2024/02/25/MIT-6.S081-lab01/"/>
+    <id>http://gejxd.github.io/2024/02/25/MIT-6.S081-lab01/</id>
     <published>2024-02-24T19:07:25.000Z</published>
     <updated>2024-02-25T16:08:17.790Z</updated>
     
