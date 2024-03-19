@@ -264,7 +264,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/03/13/MIT-6.S081-lab03/" target="_self">
         <div>
-          lab3 - page table Speed up system calls (easy) 简单说一下要我们干什么：查询进程PID时，需要保存当前用户进程的数据，切换到内核态，调用getpid()函数后把结果传回到用户态。 由于PID在进程创建开始就已经确定了，所以可以使用一块内核态和用户态共享的只读的内存，这样就可以直接在用户态读取了。我们只需要用页表映射到这块内存即可。 开始这个实验之前，强
+          lab3 - page table Speed up system calls (easy) Statement 在这个部分中，我们需要通过调整页表的映射来实现对特定系统调用的加速(getpid())。 在部分操作系统中，会使用用户空间和内核空间之间一块只读的共享内存来进行特定数据的共享，以此来达到加速特定的系统调用的目的，这样就消除了与内核交互产生的开销。在本部分中，我们将实现对getpid()
         </div>
       </a>
 
