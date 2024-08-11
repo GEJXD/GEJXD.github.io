@@ -325,7 +325,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab02/" target="_self">
         <div>
-          写完Lab2先复习高数去了。 System call tracing (moderate) 自己实现一个系统调用，能够追踪打印其他系统调用。 看完要求后完全是懵的，寻思这不会lab2就要徒手撸汇编什么的吧。然后 仔细看了看hints加上其他人的提示，才知道是在内核中修改。。。 简单说一下xv6执行系统调用的过程。所有的系统调用都有一个标识符， 定义在kernel/syscall.h文件里面: 12
+          System call tramath: truecing (moderate) 自己实现一个系统调用，能够追踪打印其他系统调用。 看完要求后完全是懵的，寻思这不会lab2就要徒手撸汇编什么的吧。然后 仔细看了看hints加上其他人的提示，才知道是在内核中修改。。。 简单说一下xv6执行系统调用的过程。所有的系统调用都有一个标识符， 定义在kernel/syscall.h文件里面: 1234567
         </div>
       </a>
 
@@ -379,14 +379,14 @@
       <h2 class="index-header">
         
         <a href="/2024/02/25/MIT-6.S081-lab01/" target="_self">
-          MIT 6.S081 lab1：Unix utilities
+          MIT 6.S081 lab util：Unix utilities 实验
         </a>
       </h2>
 
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab01/" target="_self">
         <div>
-          lab写完了好久，一直懒得写博，正好开学前两天没事干更一下。 Sleep (easy)  实验里的hints很重要，跟着hints一步一步的实现就好。  从user/echo.c文件可以看到，C语言中获取命令行参数只需要在main 函数里面加上int argc, char *argv[]就行了。其中argc表示参数的 数量，argv是二维字符串数组，表示每个参数的内容。 例如在cmd输入echo
+          前置准备 根据课程官网的要求，需要看完Lecture 1,阅读完教材第一章\(Operation \space System \space interfaces\)。 此外，实验手册中的Hints很重要，大多数实验跟着提示一步一步实现都能完成。 Sleep (easy) Statement  为xv6实现 \(UNIX\) 中的sleep程序。sleep程序应该暂定用户指定的tick数量。tick
         </div>
       </a>
 
