@@ -89,7 +89,7 @@
 
 
   
-<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="江欣婷's博客" type="application/atom+xml">
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="江欣婷's博客" type="application/atom+xml">
 </head>
 
 
@@ -312,7 +312,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab02/" target="_self">
         <div>
-          System call tramath: truecing (moderate) 自己实现一个系统调用，能够追踪打印其他系统调用。 看完要求后完全是懵的，寻思这不会lab2就要徒手撸汇编什么的吧。然后 仔细看了看hints加上其他人的提示，才知道是在内核中修改。。。 简单说一下xv6执行系统调用的过程。所有的系统调用都有一个标识符， 定义在kernel/syscall.h文件里面: 1234567
+          前置准备 主要内容为自己实现系统调用，或者优化已有的系统调用。 根据课程官网的要求，需要阅读完教材的第二章\(Operating \space system \space organization\)。并且读懂下列源代码：kernel/proc.h, kernel/defs.h, kernel/entry.S, kernel/main.c, user/initcode.S, user/init.c
         </div>
       </a>
 
@@ -321,6 +321,67 @@
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
             <time datetime="2024-02-25 11:30" pubdate>
+              2024-02-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/6-S081/">#6.S081</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/02/25/MIT-6.S081-lab02%20Notes/" target="_self">
+          MIT 6.S081 第二章笔记 | 操作系统结构
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab02%20Notes/" target="_self">
+        <div>
+          操作系统应该实现三个功能：并发、隔离、交互。即能保证多个程序都能分到硬件资源；各个进程之间的内存、指令、数据相互隔离，一个进程崩溃不会影响到其他进程；进程之间能通过受控的接口来进行通信。 操作系统提供了高级别的抽象，来管理硬件资源。例如，用文件描述符来抽象磁盘、内存、管道等资源，用户程序能通过简单的read、write、close来访问所有存储资源，而不用关心是和从磁盘、内存、管道、还是标准输入输
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-02-25 10:40" pubdate>
               2024-02-25
             </time>
           </div>
@@ -779,67 +840,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/SDNU-ICPC/">#SDNU-ICPC</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2023/08/29/Codeforces%20Round%20893%20(Div.%202)/" target="_self">
-          Codeforces Round 893 (Div. 2)
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2023/08/29/Codeforces%20Round%20893%20(Div.%202)/" target="_self">
-        <div>
-          我好菜啊
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2023-08-29 00:04" pubdate>
-              2023-08-29
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E7%AE%97%E6%B3%95%E9%A2%98%E8%A7%A3/" class="category-chain-item">算法题解</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/codeforces/">#codeforces</a>
             
           </div>
         
