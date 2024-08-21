@@ -21,18 +21,18 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="操作系统应该实现三个功能：并发、隔离、交互。即能保证多个程序都能分到硬件资源；各个进程之间的内存、指令、数据相互隔离，一个进程崩溃不会影响到其他进程；进程之间能通过受控的接口来进行通信。 操作系统提供了高级别的抽象，来管理硬件资源。例如，用文件描述符来抽象磁盘、内存、管道等资源，用户程序能通过简单的read、write、close来访问所有存储资源，而不用关心是和从磁盘、内存、管道、还是标准输入输">
+    <meta name="description" content="操作系统应该实现三个功能：并发、隔离、交互。即能保证多个程序都能分到硬件资源；各个进程之间的内存、指令、数据相互隔离，一个进程崩溃不会影响到其他进程；进程之间能通过受控的接口来进行通信。 操作系统提供了高级别的抽象，来管理硬件资源。例如，用文件描述符来抽象磁盘、内存、管道等资源，用户程序能通过简单的read、write、close来访问所有存储资源，而不用关心是和磁盘、内存、管道、还是标准输入输出">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 第二章笔记 | 操作系统结构">
 <meta property="og:url" content="http://gejxd.github.io/2024/02/25/MIT-6.S081-lab02%20Notes/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="操作系统应该实现三个功能：并发、隔离、交互。即能保证多个程序都能分到硬件资源；各个进程之间的内存、指令、数据相互隔离，一个进程崩溃不会影响到其他进程；进程之间能通过受控的接口来进行通信。 操作系统提供了高级别的抽象，来管理硬件资源。例如，用文件描述符来抽象磁盘、内存、管道等资源，用户程序能通过简单的read、write、close来访问所有存储资源，而不用关心是和从磁盘、内存、管道、还是标准输入输">
+<meta property="og:description" content="操作系统应该实现三个功能：并发、隔离、交互。即能保证多个程序都能分到硬件资源；各个进程之间的内存、指令、数据相互隔离，一个进程崩溃不会影响到其他进程；进程之间能通过受控的接口来进行通信。 操作系统提供了高级别的抽象，来管理硬件资源。例如，用文件描述符来抽象磁盘、内存、管道等资源，用户程序能通过简单的read、write、close来访问所有存储资源，而不用关心是和磁盘、内存、管道、还是标准输入输出">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://gejxd.github.io/img/6.S081/Lab-02/micro_kernel.png">
 <meta property="og:image" content="http://gejxd.github.io/img/6.S081/Lab-02/kernel_src.png">
 <meta property="og:image" content="http://gejxd.github.io/img/6.S081/Lab-02/page_table.png">
 <meta property="article:published_time" content="2024-02-25T02:40:24.000Z">
-<meta property="article:modified_time" content="2024-08-19T14:04:01.018Z">
+<meta property="article:modified_time" content="2024-08-20T14:09:56.736Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="6.S081">
 <meta name="twitter:card" content="summary_large_image">
@@ -248,7 +248,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.4k 字
+          1.8k 字
         
       </span>
     
@@ -259,7 +259,7 @@
         
         
         
-          12 分钟
+          16 分钟
         
       </span>
     
@@ -311,21 +311,23 @@
               <div class="markdown-body">
                 
                 <p>操作系统应该实现三个功能：<strong>并发</strong>、<strong>隔离</strong>、<strong>交互</strong>。即能保证多个程序都能分到硬件资源；各个进程之间的内存、指令、数据相互隔离，一个进程崩溃不会影响到其他进程；进程之间能通过受控的接口来进行通信。</p>
-<p>操作系统提供了高级别的抽象，来管理硬件资源。例如，用<strong>文件描述符</strong>来抽象磁盘、内存、管道等资源，用户程序能通过简单的<code>read</code>、<code>write</code>、<code>close</code>来访问所有存储资源，而不用关心是和从磁盘、内存、管道、还是标准输入输出交互。</p>
+<p>操作系统提供了高级别的抽象，来管理硬件资源。例如，用<strong>文件描述符</strong>来抽象磁盘、内存、管道等资源，用户程序能通过简单的<code>read</code>、<code>write</code>、<code>close</code>来访问所有存储资源，而不用关心是和磁盘、内存、管道、还是标准输入输出交互。</p>
 <h2 id="user-mode-supervisor-mode-machine-mode">2.2 User mode、
 supervisor mode、 machine mode</h2>
 <p>为了实现进程隔离，<span class="math inline">\(RISC-V\)</span>
 CPU在硬件上提供3种执行命令的模式：machine mode, supervisor mode, user
 mode。</p>
 <ol type="1">
-<li><p>machine mode：
-机器模式是级别最高的指令，CPU以机器模式启动。机器模式大多时候用于配置计算机。xv6执行必要的几行指令后就转为监管模式。</p></li>
-<li><p>supervisor mode： 在监管模式下，CPU可以执行特权指令(privileged
-instructions),
-比如中断管理、对存储页表的寄存器进行读写操作、执行系统调用。运行在<em>监管模式</em>也称为运行在<em>内核空间</em>(kernel
-space)。运行在内核空间的程序被称作<em>内核</em>。</p></li>
-<li><p>user mode：
-用户模式只能执行用户指令，例如<code>add</code>、<code>sub</code>等简单无害的指令。运行在<em>用户模式</em>也称为运行在<em>用户空间</em>。</p></li>
+<li><p><span class="math inline">\(machine \space mode\)</span>：
+机器模式拥有全权限。CPU以机器模式启动。机器模式大多时候用于配置计算机。xv6执行必要的几行指令后就转为监管模式。</p></li>
+<li><p><span class="math inline">\(supervisor \space mode\)</span>：
+在监管模式下，CPU可以执行特权指令(<span class="math inline">\(privileged
+\space instructions\)</span>),
+比如中断管理、对存储页表的寄存器进行读写操作、执行系统调用。运行在<em>监管模式</em>也称为运行在<em>内核空间</em>(<span
+class="math inline">\(kernel \space
+space\)</span>)。运行在内核空间的程序被称作<em>内核</em>。</p></li>
+<li><p><span class="math inline">\(user \space mode\)</span>：
+用户模式只能执行用户指令，例如<code>add</code>、<code>jump</code>等简单无害的指令。运行在<em>用户模式</em>也称为运行在<em>用户空间</em>。</p></li>
 </ol>
 <p>运行在用户空间的程序如果执行了特权指令，CPU会转换到特权模式并将该程序强制停止。</p>
 <h2 id="the-kernel-organization">2.3 The kernel organization</h2>
@@ -335,15 +337,15 @@ call都在supervisor mode下运行。xv6是一个monolithic kernel。</p>
 mode下的操作系统代码压到最小，保证kernel的安全性和简洁，将大部分的操作系统代码执行在user
 mode下。</p>
 <p>宏内核易于设计，但是系统调用较复杂，并且一旦任意一条特权指令出错，整个操作系统都会崩溃。</p>
-<p>如下图所示，文件系统作为用户级别的进程执行。这种运行在用户模式的内核模块称作<code>server</code>。微内核更轻便、稳定，但是难于设计和实现。</p>
+<p>如下图所示，文件系统作为用户级别的进程执行，用户通过进程间通信请求文件系统的服务。这种运行在用户模式的内核模块称作<code>server</code>。微内核更轻便、稳定，但是难于设计和实现。</p>
 <figure>
 <img src="/img/6.S081/Lab-02/micro_kernel.png" srcset="/img/loading.gif" lazyload
-alt="A microkernel with a file-system server" />
-<figcaption aria-hidden="true">A microkernel with a file-system
-server</figcaption>
+alt="Figure： 1.1 A microkernel with a file-system server" />
+<figcaption aria-hidden="true">Figure： 1.1 A microkernel with a
+file-system server</figcaption>
 </figure>
 <p>下图列出了 xv6
-的所有内核文件和其实现的功能。模块间接口定义在<code>kernel/defs.h</code>文件中。
+的所有内核文件和其对应的功能。模块间接口定义在<code>kernel/defs.h</code>文件中。
 <img src="/img/6.S081/Lab-02/kernel_src.png" srcset="/img/loading.gif" lazyload
 alt="xv6&#39;s kernel source file" /></p>
 <h2 id="process-overview">2.4 Process overview</h2>
@@ -361,9 +363,9 @@ class="math inline">\(0\)</span>
 <p>题外话：操作系统中的堆栈和数据结构中的堆栈没有关系。<strong>堆</strong>是指在运行时动态分配的空间，<strong>栈</strong>是在运行前确定的静态空间。</p>
 <figure>
 <img src="/img/6.S081/Lab-02/page_table.png" srcset="/img/loading.gif" lazyload
-alt="Layout of a process’s virtual address space" />
-<figcaption aria-hidden="true">Layout of a process’s virtual address
-space</figcaption>
+alt="Figure： 1.2 Layout of a process’s virtual address space" />
+<figcaption aria-hidden="true">Figure： 1.2 Layout of a process’s
+virtual address space</figcaption>
 </figure>
 <p>RISC-V使用 <span class="math inline">\(64\)</span> 位指针，但是 xv6
 只使用低 <span class="math inline">\(38\)</span>
@@ -389,13 +391,27 @@ class="math inline">\(ROM\)</span> 的指令初始化自己，并运行引导程
 xv6 中为<code>kernel/kernel.ld</code>)将内核加载入内存中。然后在machine
 mode从_entry(<code>kernel/entry.S</code>)开始运行xv6。bootloader将xv6
 kernel加载到0x80000000的物理地址中，因为前面的地址中有I/O设备。</p>
-<p>在<code>entry.S</code>中先初始化了一个栈<code>stack0</code>，用于运行<code>kernel/start.c</code>。<code>start</code>函数中，先以machine
+<p><code>entry.S</code>中的指令声明了一个栈<code>stack0</code>，用于运行<code>kernel/start.c</code>，之后通过<code>call</code>指令跳转到<code>start</code>。</p>
+<p><code>start</code>函数中，先以machine
 mode做了一些配置，然后调用<code>mret</code>指令跳转到supervisor mode,
 并通过修改 PC 寄存器的值跳转到<code>kernel/main.c</code>。</p>
 <p><code>main</code>先对一些设备和子系统进行初始化，然后调用<code>kernel/proc.c</code>中定义的<code>userinit()</code>来创建第一个用户进程。这个进程执行了一个<code>initcode.S</code>的汇编程序。这个汇编程序调用了<code>exec</code>这个system
 call来执行<code>/init</code>，重新进入kernel。exec将当前进程的内存和寄存器替换为一个新的程序(即<code>/init</code>)，当kernel执行完毕<code>exec</code>指定的程序后，回到<code>/init</code>进程。<code>/init(user/init.c)</code>创建了一个新的console
 device以文件描述符0,1,2打开，然后在console
 device中开启了一个shell进程，至此整个系统启动。</p>
+<h2 id="calling-system-calls">2.6 Calling system calls</h2>
+<p>对应教材第4章第3节，主要内容为内核执行系统调用的过程。</p>
+<p>进程将要请求的系统调用号写入<code>p-&gt;trapframe-&gt;a7</code>,
+其中<code>p</code>为当前进程的<code>struct proc</code>。并且将参数写入<code>p-&gt;trapframe-&gt;a0</code>和其他寄存器。之后进程执行<code>ecall</code>指令，并保存进程相关信息(其中就包括<code>trapframe</code>)。然后开始执行<code>syscall(kernel/syscall.c:95)</code></p>
+<p><code>syscall()</code>从<code>trapframe-&gt;a7</code>中拿到索引，通过一个函数指针数组<code>syscall[]</code>(定义在<code>kernel/syscall.c</code>中)获取对应系统调用的函数指令。然后将系统调用的返回写入<code>p-&gt;trapframe-&gt;a0</code>。</p>
+<p>系统调用号( <span class="math inline">\(system \space call \space
+number\)</span>
+)定义在<code>kernel/syscall.h</code>中，作为内核找到函数指针的索引。</p>
+<h2 id="system-call-arguments">2.7 System call arguments</h2>
+<p>对应教材第4章第4节。</p>
+<p><code>trap</code>相关的代码将用户寄存器保存在当前进程的<code>trapframe</code>中，内核函数<code>argint</code>、<code>argaddr</code>、<code>argfd</code>从<code>trapframe</code>中的指定寄存器得到数据，并分别按照整数、地址、文件描述符解析。通过<code>argrow</code>能方便的读取第<span
+class="math inline">\(n\)</span>个寄存器的内容(这些函数都定义在<code>kernel\syscall.c</code>中)。</p>
+<p>大部分参数都通过指针来传递，有时用户程序还会请求内核访问特定内存并写入数据。为了防止用户程序传入恶意参数，内核使用<code>fetchstr</code>和<code>copyinstr</code>来实现安全地与用户提供的地址之间传输数据的功能。</p>
 
                 
               </div>
