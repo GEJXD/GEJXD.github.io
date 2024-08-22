@@ -32,7 +32,7 @@
 <meta property="og:image" content="http://gejxd.github.io/img/6.S081/Lab-02/kernel_src.png">
 <meta property="og:image" content="http://gejxd.github.io/img/6.S081/Lab-02/page_table.png">
 <meta property="article:published_time" content="2024-02-25T02:40:24.000Z">
-<meta property="article:modified_time" content="2024-08-20T14:09:56.736Z">
+<meta property="article:modified_time" content="2024-08-22T09:00:19.163Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="6.S081">
 <meta name="twitter:card" content="summary_large_image">
@@ -248,7 +248,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.8k 字
+          1.7k 字
         
       </span>
     
@@ -259,7 +259,7 @@
         
         
         
-          16 分钟
+          15 分钟
         
       </span>
     
@@ -391,14 +391,11 @@ class="math inline">\(ROM\)</span> 的指令初始化自己，并运行引导程
 xv6 中为<code>kernel/kernel.ld</code>)将内核加载入内存中。然后在machine
 mode从_entry(<code>kernel/entry.S</code>)开始运行xv6。bootloader将xv6
 kernel加载到0x80000000的物理地址中，因为前面的地址中有I/O设备。</p>
-<p><code>entry.S</code>中的指令声明了一个栈<code>stack0</code>，用于运行<code>kernel/start.c</code>，之后通过<code>call</code>指令跳转到<code>start</code>。</p>
 <p><code>start</code>函数中，先以machine
 mode做了一些配置，然后调用<code>mret</code>指令跳转到supervisor mode,
 并通过修改 PC 寄存器的值跳转到<code>kernel/main.c</code>。</p>
 <p><code>main</code>先对一些设备和子系统进行初始化，然后调用<code>kernel/proc.c</code>中定义的<code>userinit()</code>来创建第一个用户进程。这个进程执行了一个<code>initcode.S</code>的汇编程序。这个汇编程序调用了<code>exec</code>这个system
-call来执行<code>/init</code>，重新进入kernel。exec将当前进程的内存和寄存器替换为一个新的程序(即<code>/init</code>)，当kernel执行完毕<code>exec</code>指定的程序后，回到<code>/init</code>进程。<code>/init(user/init.c)</code>创建了一个新的console
-device以文件描述符0,1,2打开，然后在console
-device中开启了一个shell进程，至此整个系统启动。</p>
+call来执行<code>/init</code>，重新进入kernel。exec将当前进程的内存和寄存器替换为一个新了一个shell进程，至此整个系统启动。</p>
 <h2 id="calling-system-calls">2.6 Calling system calls</h2>
 <p>对应教材第4章第3节，主要内容为内核执行系统调用的过程。</p>
 <p>进程将要请求的系统调用号写入<code>p-&gt;trapframe-&gt;a7</code>,
