@@ -24,35 +24,35 @@
     <meta name="description" content="前言 系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖 参考：https:&#x2F;&#x2F;pdos.csail.mit.edu&#x2F;6.828&#x2F;2021&#x2F;tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 lab0：配置xv6环境+vscode调试">
-<meta property="og:url" content="http://gejxd.github.io/2024/02/08/MIT-6.S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:url" content="https://acmicpc.top/2024/02/08/MIT-6.S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
 <meta property="og:description" content="前言 系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖 参考：https:&#x2F;&#x2F;pdos.csail.mit.edu&#x2F;6.828&#x2F;2021&#x2F;tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/neofetch.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/riscv64.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/utils.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/qemu.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/boot.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/error.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/runcmd.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/C-C++.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/clangd.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/compile_commands.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/qemu-gdb.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/gdbinit.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/gdb_main.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/sleep_break.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/break_point.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/exec.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/bread_point_red.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/sleep_10.png">
-<meta property="og:image" content="http://gejxd.github.io/img/6.S081/run.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/neofetch.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/riscv64.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/utils.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/qemu.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/boot.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/error.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/runcmd.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/C-C++.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/clangd.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/compile_commands.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/qemu-gdb.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/gdbinit.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/gdb_main.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/sleep_break.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/break_point.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/exec.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/bread_point_red.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/sleep_10.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/run.png">
 <meta property="article:published_time" content="2024-02-07T22:51:39.000Z">
 <meta property="article:modified_time" content="2024-08-11T16:06:54.619Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="6.S081">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://gejxd.github.io/img/6.S081/neofetch.png">
+<meta name="twitter:image" content="https://acmicpc.top/img/6.S081/neofetch.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
@@ -96,7 +96,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"gejxd.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -460,7 +460,7 @@ id="编译显示infinite-recursion-detected">编译显示<code>infinite recursio
   <div class="license-box my-3">
     <div class="license-title">
       <div>MIT 6.S081 lab0：配置xv6环境+vscode调试</div>
-      <div>http://gejxd.github.io/2024/02/08/MIT-6.S081-lab0-配环境/</div>
+      <div>https://acmicpc.top/2024/02/08/MIT-6.S081-lab0-配环境/</div>
     </div>
     <div class="license-meta">
       
