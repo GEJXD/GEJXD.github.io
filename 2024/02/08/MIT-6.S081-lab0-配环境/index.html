@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="江欣婷">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言 系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖 参考：https:&#x2F;&#x2F;pdos.csail.mit.edu&#x2F;6.828&#x2F;2021&#x2F;tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MIT 6.S081 lab0：配置xv6环境+vscode调试">
+<meta property="og:url" content="https://acmicpc.top/2024/02/08/MIT-6.S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:site_name" content="江欣婷&#39;s博客">
+<meta property="og:description" content="前言 系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖 参考：https:&#x2F;&#x2F;pdos.csail.mit.edu&#x2F;6.828&#x2F;2021&#x2F;tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/neofetch.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/riscv64.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/utils.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/qemu.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/boot.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/error.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/runcmd.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/C-C++.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/clangd.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/compile_commands.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/qemu-gdb.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/gdbinit.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/gdb_main.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/sleep_break.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/break_point.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/exec.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/bread_point_red.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/sleep_10.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/run.png">
+<meta property="article:published_time" content="2024-02-07T22:51:39.000Z">
+<meta property="article:modified_time" content="2024-08-11T16:06:54.000Z">
+<meta property="article:author" content="江欣婷">
+<meta property="article:tag" content="6.S081">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://acmicpc.top/img/6.S081/neofetch.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>MIT 6.S081 lab0：配置xv6环境+vscode调试 - 江欣婷&#39;s博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="江欣婷's博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>江欣婷&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="MIT 6.S081 lab0：配置xv6环境+vscode调试"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        江欣婷
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-02-08 06:51" pubdate>
+          2024年2月8日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">MIT 6.S081 lab0：配置xv6环境+vscode调试</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言">前言</h2>
+<p>系统为Archlinux物理机，环境如下：</p>
+<p><img src="/img/6.S081/neofetch.png" srcset="/img/loading.gif" lazyload /></p>
+<p>使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。</p>
+<h2 id="安装依赖">安装依赖</h2>
+<p>参考：https://pdos.csail.mit.edu/6.828/2021/tools.html</p>
+<p><strong>首先安装转义riscv64的包：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> pacman -S riscv64-linux-gnu-binutils riscv64-linux-gnu-gcc riscv64-linux-gnu-gdb<br></code></pre></td></tr></table></figure>
+<p><strong>测试一下环境</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">riscv64-linux-gnu-gcc --version<br>qemu-system-riscv64 --version<br></code></pre></td></tr></table></figure>
+<p>如果出现下图就说明成功了：</p>
+<p><img src="/img/6.S081/riscv64.png" srcset="/img/loading.gif" lazyload /></p>
+<p><strong>安装运行xv6的模拟器:</strong></p>
+<p>官网上的qemu-arch-extra已经被替换为了qemu-arch-extra-git。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> pacman -S qemu-arch-extra-git<br></code></pre></td></tr></table></figure>
+<p>到这需要的环境就装完了<del>(不会装vscode建议退课)</del>。</p>
+<h2 id="编译运行xv6">编译运行xv6</h2>
+<p>参考：https://pdos.csail.mit.edu/6.828/2021/labs/util.html</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">git <span class="hljs-built_in">clone</span> git://g.csail.mit.edu/xv6-labs-2021<br><span class="hljs-built_in">cd</span> xv6-labs-2021<br></code></pre></td></tr></table></figure>
+<p>课程里提到实验用的xv6和实际发布的不太一样，所以别下载github上的，用课程官网的这个。如果要其他年份的就把末尾的<code>xv6-labs-2021</code>改为其他年份就行。</p>
+<p>可以发现master分支里啥也没有，我们先切换到lab1用到的<code>util</code>分支：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">git checkout util<br></code></pre></td></tr></table></figure>
+<p>这时候<code>ls</code>一下就会出现xv6的源码了：</p>
+<p><img src="/img/6.S081/utils.png" srcset="/img/loading.gif" lazyload /></p>
+<p>然后用<code>qemu</code>编译一下看看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make qemu<br></code></pre></td></tr></table></figure>
+<p><img src="/img/6.S081/qemu.png" srcset="/img/loading.gif" lazyload /></p>
+<p>最后出现这几行就说明编译成功了，按<code>ctrl + a, x</code>退出模拟环境。</p>
+<p><img src="/img/6.S081/boot.png" srcset="/img/loading.gif" lazyload /></p>
+<p>这里会遇到几个坑：</p>
+<h3
+id="编译显示infinite-recursion-detected">编译显示<code>infinite recursion detected</code></h3>
+<p><img src="/img/6.S081/error.png" srcset="/img/loading.gif" lazyload /></p>
+<p>解决方案见https://github.com/mit-pdos/xv6-riscv/pull/126。</p>
+<p>由于实现的是操作系统，需要很高的代码可靠性，所以MIT在<code>Makefile</code>里设置了把所有警告都视为错误。在<code>user/sh.c</code>中<code>runcmd</code>前添加一行<code>__attribute__((noreturn))</code>即可。</p>
+<p><img src="/img/6.S081/runcmd.png" srcset="/img/loading.gif" lazyload /></p>
+<h3 id="编译在最后一步卡住">编译在最后一步卡住</h3>
+<p>如果用的是2020版的<code>xv6</code>，由于老版本的<code>qemu</code>和新版本的不兼容，可以使用<code>downgrage</code>来降级<code>qemu</code>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> downgrade qemu-arch-extra<br></code></pre></td></tr></table></figure>
+<p>选择<code>5.2.0</code>或以前的版本即可。</p>
+<p>也可以用源码编译安装老版本的<code>qemu</code>,参考：https://www.xujintong.com/2023/12/24/187/</p>
+<p><strong>PS：经过亲身试验，2021版和2020版在实验内容上一模一样，所以建议用2021版，这样就不用降级<code>qemu</code>。</strong></p>
+<h2 id="配置vscode和clangd">配置VScode和clangd</h2>
+<p>配中文、主题什么的就不说了。</p>
+<p>需要安装的插件有两个：C/C++（用来配置GDB调试）、clangd
+(代码补全)。</p>
+<p><img src="/img/6.S081/C-C++.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="/img/6.S081/clangd.png" srcset="/img/loading.gif" lazyload /></p>
+<p>可以发现<code>clangd</code>找不到标准库和<code>xv6</code>的库，需要用<code>compile_commands.json</code>文件来指明，可以用<code>bear</code>包来自动生成。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> pacman -S bear<br>make clean <span class="hljs-comment"># 清空上一次编译的内容</span><br>bear -- make qemu<br></code></pre></td></tr></table></figure>
+<p>然后<code>compile_commands.json</code>文件里就指明了编译所需头文件的路径：</p>
+<p><img src="/img/6.S081/compile_commands.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="配置代码自动调整格式可选">配置代码自动调整格式(可选)</h2>
+<p><code>xv6</code>的代码风格也太古老了，看的特别不顺眼，所以用<code>llvm</code>的代码风格魔改了一下。</p>
+<p>首先按<code>ctrl + ,</code>，进入<code>vscode</code>的设置，搜索<code>format on save</code>,打上钩，这样在按<code>ctrl + s</code>保存代码的时候就可以自动格式化代码。</p>
+<p>然后在<code>xv6</code>的根目录新建文件<code>.clang-format</code>，借用一下这个老哥的文件:https://github.com/kehanXue/google-style-clang-format/blob/master/.clang-format。把里面的<code>.clang-format</code>复制到我们的文件里面就行，<code>tab-size</code>什么的不习惯2也可以改为4。</p>
+<p>需要注意的是，不要配置自动为头文件排序，不然声明顺序不对会提示函数未声明。在<code>.clangd-format</code>里面设置<code>SortIncludes: false</code>。</p>
+<h2 id="使用vscode-gdb调试">使用VScode + gdb调试</h2>
+<p>用<code>terminal</code>调试效率太低了(也可能是我太菜了)，所以用<code>vscode</code>配置<code>launch.json</code>来用图形化界面。</p>
+<p>详细解释参考：https://www.cnblogs.com/KatyuMarisaBlog/p/13727565.html，这里就不说细节了。</p>
+<p>在<code>xv6</code>根目录新建目录<code>.vscode</code>，里面新建文件<code>launch.json</code>。把下面这一段东西复制进去：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;version&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;0.2.0&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;configurations&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>        <span class="hljs-punctuation">&#123;</span><br>            <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;debug xv6&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;cppdbg&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;request&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;launch&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;program&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;$&#123;workspaceFolder&#125;/kernel/kernel&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;stopAtEntry&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;cwd&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;$&#123;workspaceFolder&#125;&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;miDebuggerServerAddress&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;localhost:26000&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;miDebuggerPath&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;/usr/bin/riscv64-linux-gnu-gdb&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;environment&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;externalConsole&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;MIMode&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;gdb&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;setupCommands&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>                <span class="hljs-punctuation">&#123;</span><br>                    <span class="hljs-attr">&quot;description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;pretty printing&quot;</span><span class="hljs-punctuation">,</span><br>                    <span class="hljs-attr">&quot;text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;-enable-pretty-printing&quot;</span><span class="hljs-punctuation">,</span><br>                    <span class="hljs-attr">&quot;ignoreFailures&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><br>                <span class="hljs-punctuation">&#125;</span><br>            <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;logging&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>                <span class="hljs-comment">// &quot;engineLogging&quot;: true,</span><br>                <span class="hljs-comment">// &quot;programOutput&quot;: true,</span><br>            <span class="hljs-punctuation">&#125;</span><br>        <span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">]</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+<p>注意<code>midDebuggerPath</code>这一行，如果你用的是<code>riscv64-linux-gnu-gdb</code>就填<code>riscv64-linux-gnu-gdb</code>，如果是<code>riscv64-unknown-elf-gcc</code>就填<code>riscv64-unknown-elf-gcc</code>，其他的同理。</p>
+<p>之后运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make qemu-gdb<br></code></pre></td></tr></table></figure>
+<p>来开启<code>qemu</code>的<code>gdb</code>接口，可以看到用的接口是<code>26000</code>。</p>
+<p><img src="/img/6.S081/qemu-gdb.png" srcset="/img/loading.gif" lazyload /></p>
+<p>在<code>xv6</code>根目录会自动新增一个<code>gdbinit</code>文件，把文件里的<code>target remote 127.0.0.1:26000</code>行删除。</p>
+<p><img src="/img/6.S081/gdbinit.png" srcset="/img/loading.gif" lazyload /></p>
+<p>每一次执行<code>make clean</code>时都要把这一行删除，目前没找到一劳永逸的办法。</p>
+<p>然后在需要调试的文件里添加断点，按下<code>F5</code>，<code>gbd</code>正确停止到<code>kernel</code>的<code>main</code>函数里。</p>
+<p><img src="/img/6.S081/gdb_main.png" srcset="/img/loading.gif" lazyload /></p>
+<p>在需要调试的代码前加断点，这里用第一个实验<code>sleep.c</code>为例：</p>
+<p><img src="/img/6.S081/sleep_break.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="/img/6.S081/break_point.png" srcset="/img/loading.gif" lazyload /></p>
+<p>可以看到断点是灰红色+空心的，说明<code>vscode</code>并没有正确切换符号表，我们打开调试控制台，输入<code>-exec file /user/_sleep</code>，然后就发现断点变红+实心了。</p>
+<p><img src="/img/6.S081/exec.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="/img/6.S081/bread_point_red.png" srcset="/img/loading.gif" lazyload /></p>
+<p>在<code>xv6</code>终端中输入<code>sleep 10</code>来运行程序，点击上方的继续按钮，<code>gdb</code>将会运行到断点处停下，然后就和调试其他程序一样用就行。</p>
+<p><img src="/img/6.S081/sleep_10.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="/img/6.S081/run.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="关于提交lab">关于提交lab</h2>
+<p>管理code参考：https://xv6.dgs.zone/labs/use_git/git1.html</p>
+<p>主要说一说怎么提交。</p>
+<p>首先在这个网站注册账号并复制<code>api-KEY</code>：https://6828.scripts.mit.edu/2021/handin.py/</p>
+<p>将所有改动提交到<code>github</code>后，在根目录输入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make handin<br></code></pre></td></tr></table></figure>
+<p>之后会提示让输入<code>api-key</code>，复制进去回车就行。如果<code>api-key</code>修改了，可以在文件<code>myapi.key</code>同步修改即可。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/6-S081/" class="print-no-link">#6.S081</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>MIT 6.S081 lab0：配置xv6环境+vscode调试</div>
+      <div>https://acmicpc.top/2024/02/08/MIT-6.S081-lab0-配环境/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>江欣婷</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年2月8日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/02/25/MIT-6.S081-lab01/" title="MIT 6.S081 Lab1 util：Unix utilities | UNIX 实用程序">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MIT 6.S081 Lab1 util：Unix utilities | UNIX 实用程序</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/01/20/std-chrono%E6%97%B6%E9%97%B4%E5%BA%93%E6%80%BB%E7%BB%93/" title="std::chrono时间库总结">
+                        <span class="hidden-mobile">std::chrono时间库总结</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

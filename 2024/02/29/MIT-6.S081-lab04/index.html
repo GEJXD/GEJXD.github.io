@@ -1,0 +1,840 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="江欣婷">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="lab4 - traps 前置准备 主要内容为探索陷阱处理机制。 根据课程官网的要求，需要阅读完教材的第四章\(Page \space tables\)。并且读懂下列源代码：kernel&#x2F;memlayout.h, kernel&#x2F;vm.c, kernel&#x2F;kalloc.c, kernel&#x2F;riscv.h, user&#x2F;exec.c。 相关笔记参考: lecture 4 Notes 将pgtbl分支所有">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MIT 6.S081 lab4：traps | 陷入">
+<meta property="og:url" content="https://acmicpc.top/2024/02/29/MIT-6.S081-lab04/index.html">
+<meta property="og:site_name" content="江欣婷&#39;s博客">
+<meta property="og:description" content="lab4 - traps 前置准备 主要内容为探索陷阱处理机制。 根据课程官网的要求，需要阅读完教材的第四章\(Page \space tables\)。并且读懂下列源代码：kernel&#x2F;memlayout.h, kernel&#x2F;vm.c, kernel&#x2F;kalloc.c, kernel&#x2F;riscv.h, user&#x2F;exec.c。 相关笔记参考: lecture 4 Notes 将pgtbl分支所有">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-04/riscv-caller.png">
+<meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-04/run_backtrace.png">
+<meta property="article:published_time" content="2024-02-29T10:20:32.000Z">
+<meta property="article:modified_time" content="2024-09-04T11:20:26.000Z">
+<meta property="article:author" content="江欣婷">
+<meta property="article:tag" content="6.S081">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://acmicpc.top/img/6.S081/Lab-04/riscv-caller.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>MIT 6.S081 lab4：traps | 陷入 - 江欣婷&#39;s博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="江欣婷's博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>江欣婷&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="MIT 6.S081 lab4：traps | 陷入"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        江欣婷
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-02-29 18:20" pubdate>
+          2024年2月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">MIT 6.S081 lab4：traps | 陷入</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="lab4---traps">lab4 - traps</h1>
+<h2 id="前置准备">前置准备</h2>
+<p>主要内容为探索陷阱处理机制。</p>
+<p>根据<a
+target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2021/schedule.html">课程官网</a>的要求，需要阅读完教材的第四章<span
+class="math inline">\(Page \space
+tables\)</span>。并且读懂下列源代码：<code>kernel/memlayout.h</code>,
+<code>kernel/vm.c</code>, <code>kernel/kalloc.c</code>,
+<code>kernel/riscv.h</code>, <code>user/exec.c</code>。</p>
+<p>相关笔记参考: <a
+target="_blank" rel="noopener" href="https://gejxd.github.io/2024/02/27/MIT-6.S081-lab04%20Notes/">lecture
+4 Notes</a></p>
+<p>将<code>pgtbl</code>分支所有内容都上传仓库后，执行下列命令来切换分支
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">git fetch<br>git checkout traps<br>make clean<br></code></pre></td></tr></table></figure></p>
+<p>此外，新建一个<code>traps_dev</code>分支来进行实际实验。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">git checkout -b traps_dev<br></code></pre></td></tr></table></figure>
+<p>在<code>traps_dev</code>中每通过一个作业的测试，提交（git
+commit）你的代码，并将所做的修改合并（git merge）到util中，然后提交（git
+push）到github。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">git add .<br>git commit -m <span class="hljs-string">&quot;xxxxxxxx&quot;</span><br>git checkout traps<br>git merge traps_dev<br>git push github traps:traps<br></code></pre></td></tr></table></figure>
+<h2 id="risc-v-assembly">RISC-V assembly</h2>
+<p>在本部分中将给出一段 RISC-V
+汇编代码，通过阅读代码我们要回答几个问题，并把答案存储在主目录下的
+<code>answers-traps.txt</code>下。</p>
+<p>运行 <code>make fs.img</code>后会编译<code>user/call.c</code>,
+并生成<code>user/call.asm</code>。我们需要观察<code>call.asm</code>下的<code>g</code>、<code>f</code>、<code>main</code>函数。</p>
+<p>RISC-V 参考文档：<a
+target="_blank" rel="noopener" href="https://drive.google.com/file/d/1uviu1nH-tScFfgrovvFCrj7Omv8tFtkp/view">RISC-V
+unprivileged instructions</a> <a
+target="_blank" rel="noopener" href="https://drive.google.com/file/d/17GeetSnT5wW3xNuAHI95-SI1gPGd5sJ_/view">RISC-V
+privileged instructions</a></p>
+<blockquote>
+<p>哪些寄存器包含函数的参数？例如，在 <code>main</code> 调用
+<code>printf</code> 时，哪个寄存器保存 <span
+class="math inline">\(13\)</span>？</p>
+</blockquote>
+<p>查阅<code>Calling conventions</code>手册，可以发现 <span
+class="math inline">\(a_0 \rightarrow
+a_7\)</span>为函数参数和返回值寄存器。</p>
+<figure>
+<img src="/img/6.S081/Lab-04/riscv-caller.png" srcset="/img/loading.gif" lazyload
+alt="RISC-V常用寄存器及使用约定" />
+<figcaption aria-hidden="true">RISC-V常用寄存器及使用约定</figcaption>
+</figure>
+<p>13属于第三个参数(第一个为format
+string，第二个为<code>f(8) + 1</code>)。所以存储在<span
+class="math inline">\(a_2\)</span>寄存器中。</p>
+<blockquote>
+<p>在 <code>main</code> 的汇编代码中，函数 <code>f</code>
+的调用在哪里？对 <code>g</code> 的调用在哪里？
+提示：编译器可能会内联函数）。</p>
+</blockquote>
+<p>我们先分析一下<code>g()</code>的汇编代码。 <figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">int</span> g(<span class="hljs-keyword">int</span> x) &#123;<br>   <span class="hljs-number">0</span>:	<span class="hljs-number">1141</span>                	addi	<span class="hljs-built_in">sp</span>,<span class="hljs-built_in">sp</span>,-<span class="hljs-number">16</span><br>   <span class="hljs-number">2</span>:	e406                	sd	ra,<span class="hljs-number">8</span>(<span class="hljs-built_in">sp</span>)<br>   <span class="hljs-number">4</span>:	e022                	sd	s0,<span class="hljs-number">0</span>(<span class="hljs-built_in">sp</span>)<br>   <span class="hljs-number">6</span>:	<span class="hljs-number">0800</span>                	addi	s0,<span class="hljs-built_in">sp</span>,<span class="hljs-number">16</span><br>    return x + <span class="hljs-number">3</span><span class="hljs-comment">;</span><br>&#125;<br>   <span class="hljs-number">8</span>:	<span class="hljs-number">250d</span>                	addiw	a0,a0,<span class="hljs-number">3</span><br><span class="hljs-symbol">   a:</span>	60a2                	ld	ra,<span class="hljs-number">8</span>(<span class="hljs-built_in">sp</span>)<br><span class="hljs-symbol">   c:</span>	<span class="hljs-number">6402</span>                	ld	s0,<span class="hljs-number">0</span>(<span class="hljs-built_in">sp</span>)<br><span class="hljs-symbol">   e:</span>	<span class="hljs-number">0141</span>                	addi	<span class="hljs-built_in">sp</span>,<span class="hljs-built_in">sp</span>,<span class="hljs-number">16</span><br>  <span class="hljs-number">10</span>:	<span class="hljs-number">8082</span>                	<span class="hljs-keyword">ret</span><br></code></pre></td></tr></table></figure>
+首先将栈顶指针<code>sp</code>往下移动16字节，等价与要入栈两个元素。将<code>ra</code>，即caller进程的<code>pc</code>值，存入栈的第一个位置。将<code>s0</code>，即caller进程的其他寄存器保存地址，存放到第二个位置。</p>
+<p>然后将<code>a0</code>的值加3，存储到<code>a0</code>寄存器中。然后从栈中恢复<code>ra</code>和<code>s0</code>的地址，此时CPU能返回原进程继续执行。然后<code>ret</code>指令将<code>a0</code>复制给原进程，即返回值。</p>
+<p><code>f()</code>函数和<code>g()</code>大同小异，只是编译器将<code>return g(x)</code>直接展开为<code>x + 3</code>了。</p>
+<p><code>main</code>函数中可以看到，直接将12写入<code>a1</code>，直接将13写入<code>a2</code>。所以推测直接将<code>f(8) + 1</code>计算在编译器计算出来，当常数写入了。</p>
+<blockquote>
+<p>printf 函数位于哪个地址？</p>
+</blockquote>
+<p>可以看到<code>jalr</code>跳转到了<code>ra + 1544</code>的地址，也就是<code>0x640</code>的地方。所以printf应该在这个位置。</p>
+<blockquote>
+<p>在 jalr 跳转至 main 函数的 printf 时，寄存器 ra 中有什么值？</p>
+</blockquote>
+<p>当程序进行跳转时，我们需要将 ra 寄存器存储的返回地址指向 printf
+执行结束后返回到主程序的位置，也就是当前位置 PC 加 4，也就是 0x38</p>
+<h2 id="backtrace-moderate">Backtrace (moderate)</h2>
+<h3 id="statement">Statement</h3>
+<p>在调试过程中，回溯通常很有用：在发生错误时，堆栈上的函数调用列表。</p>
+<blockquote>
+<p>在 <code>kernel/printf.c</code> 中实现一个 <code>backtrace()</code>
+函数。在 <code>sys_sleep</code> 中插入对该函数的调用，然后运行
+<code>bttest</code>，调用 <code>sys_sleep</code>。输出结果如下</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">backtrace:<br>0x0000000080002cda<br>0x0000000080002bb6<br>0x0000000080002898<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p><code>bttest</code> 之后退出
+<code>qemu</code>。在终端中：地址可能略有不同，但如果运行
+<code>addr2line -e kernel/kernel</code>（或
+<code>riscv64-unknown-elf-addr2line -e kernel/kernel</code>）并剪切粘贴上述地址，则如下所示：
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ addr2line -e kernel/kernel<br>  0x0000000080002de2<br>  0x0000000080002f4a<br>  0x0000000080002bfc<br>  Ctrl-D<br></code></pre></td></tr></table></figure>
+应该查阅类似下面的内容：<code>kernel/sysproc.c:74</code>、<code>kernel/syscall.c:224</code>、<code>kernel/trap.c:85</code>。</p>
+</blockquote>
+<h3 id="hints">Hints</h3>
+<ul>
+<li>在 <code>kernel/defs.h</code> 中添加 <code>backtrace</code>
+原型，以便在 <code>sys_sleep</code> 中调用 <code>backtrace</code>。</li>
+<li>GCC 编译器会将当前执行函数的帧指针存储在寄存器 s0
+中。将以下函数添加到 <code>kernel/riscv.h</code>,
+并在回溯中调用该函数来读取当前帧指针。该函数使用内联汇编读取 s0。
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> uint64<br><span class="hljs-title function_">r_fp</span><span class="hljs-params">()</span><br>&#123;<br>  uint64 x;<br>  <span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;mv %0, s0&quot;</span> : <span class="hljs-string">&quot;=r&quot;</span> (x) )</span>;<br>  <span class="hljs-keyword">return</span> x;<br>&#125;<br></code></pre></td></tr></table></figure></li>
+<li><a
+target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2021/lec/l-riscv-slides.pdf">这些讲义</a>中有一张堆栈帧布局的图片。返回地址位于堆栈帧的帧指针的固定偏移量（-8）处，而保存的帧指针位于帧指针的固定偏移量（-16）处。</li>
+<li>Xv6 为 xv6 内核中的每个堆栈分配一个 PAGE 对齐地址的页面。您可以使用
+<code>PGROUNDDOWN(fp)</code> 和 <code>PGROUNDUP(fp)</code>
+计算堆栈页面的顶部和底部地址（参见 <code>kernel/riscv.h</code>）。</li>
+</ul>
+<h3 id="analysis-solution">Analysis &amp; Solution</h3>
+<p>前两个提示说的很明白了，这里就跳过。</p>
+<p>首先读出<code>s0</code>寄存器的值，即当前函数的栈指针。然后用类似链表遍历的方式，每次输出<code>return address</code>的值，然后移动到<code>prev frame</code>继续遍历即可。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">backtrace</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;backtrace:\n&quot;</span>);<br>    uint64 fp = r_fp();<br>    <span class="hljs-keyword">while</span> (fp != PGROUNDUP(fp)) &#123;   <span class="hljs-comment">// until get to stack bottom</span><br>        <span class="hljs-comment">// get return addr in current stack frame</span><br>        uint64 ra = *(uint64*)(fp - <span class="hljs-number">8</span>);<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%p\n&quot;</span>, ra);<br>        <span class="hljs-comment">// go to prev stack frame</span><br>        fp = *(uint64*)(fp - <span class="hljs-number">16</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>然后在<code>sys_sleep()</code>和<code>panic()</code>中调用<code>backtrace</code>。</p>
+<p>运行结果。 <img src="/img/6.S081/Lab-04/run_backtrace.png" srcset="/img/loading.gif" lazyload /> <img
+src="/img/6.S081/Lab-04/backtrace.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="alarm-hard">Alarm (Hard)</h2>
+<p>咕咕咕先。说实话，题目我都没看懂().</p>
+<p>大概就是实现 <span class="math inline">\(CPU\)</span>
+计时器，当一个进程使用 <span class="math inline">\(CPU\)</span>
+资源的时候，周期性的发出一个警告，类似于时间片轮转算法的简化版本。感觉没十几个小时弄不完，等有生之年吧。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/6-S081/" class="print-no-link">#6.S081</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>MIT 6.S081 lab4：traps | 陷入</div>
+      <div>https://acmicpc.top/2024/02/29/MIT-6.S081-lab04/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>江欣婷</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年2月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/01/25/2023%20SDNU%20ACM-ICPC%E9%9B%86%E8%AE%AD%E9%98%9F%E7%BA%B3%E6%96%B0%E9%80%9A%E7%9F%A5/" title="2023 SDNU ACM-ICPC集训队纳新通知">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">2023 SDNU ACM-ICPC集训队纳新通知</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/02/29/MIT-6.S081-lab04%20Notes/" title="MIT 6.S081 第四章笔记 | 陷入指令和中断">
+                        <span class="hidden-mobile">MIT 6.S081 第四章笔记 | 陷入指令和中断</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

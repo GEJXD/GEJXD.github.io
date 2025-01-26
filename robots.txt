@@ -1,0 +1,18 @@
+# hexo robots.txt
+User-agent: *
+Allow: /
+Allow: /about/
+Allow: /archives/
+Allow: /categories/
+Allow: /tags/
+Allow: /2023/
+Allow: /2024/
+Allow: /js/
+Allow: /css/
+Allow: /links/
+Allow: /img/
+
+Disallow: /assets/
+
+Sitemap: http://gejxd.github.io/sitemap.xml
+Sitemap: http://gejxd.github.io/baidusitemap.xml
