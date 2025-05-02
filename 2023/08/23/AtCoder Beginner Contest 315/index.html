@@ -306,143 +306,96 @@
             
               <div class="markdown-body">
                 
-                <h2 id="a---tcdr-abc315-a"><a
-target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_a">A - tcdr
-(abc315 A)</a></h2>
+                <h2 id="A-tcdr-abc315-A"><a target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_a">A - tcdr (abc315 A)</a></h2>
 <h3 id="题目大意">题目大意</h3>
 <p>从给定的字符串中删除元音字母。</p>
 <h3 id="解题思路">解题思路</h3>
 <p>无</p>
 <details>
-<summary>
-神奇的代码
-</summary>
+  <summary>神奇的代码</summary>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span><br><br><span class="hljs-keyword">using</span> i64 = <span class="hljs-type">long</span> <span class="hljs-type">long</span>;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::ios::<span class="hljs-built_in">sync_with_stdio</span>(<span class="hljs-literal">false</span>);<br>    std::cin.<span class="hljs-built_in">tie</span>(<span class="hljs-literal">nullptr</span>);<br><br>    std::string s;<br>    std::cin &gt;&gt; s;<br><br>    std::string ans = &#123;&#125;;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> &amp;item : s) &#123;<br>        <span class="hljs-keyword">if</span> (item == <span class="hljs-string">&#x27;a&#x27;</span> || item == <span class="hljs-string">&#x27;e&#x27;</span> || item == <span class="hljs-string">&#x27;i&#x27;</span> || item == <span class="hljs-string">&#x27;o&#x27;</span> || item == <span class="hljs-string">&#x27;u&#x27;</span>) <span class="hljs-keyword">continue</span>;<br>        ans.<span class="hljs-built_in">push_back</span>(item);<br>    &#125;<br><br>    std::cout &lt;&lt; ans &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 </details>
-<p><br></p>
-<hr />
-<h2 id="b---the-middle-day-abc315-b"><a
-target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_b">B - The Middle
-Day (abc315 B)</a></h2>
-<h3 id="题目大意-1">题目大意</h3>
-<p>给定一年有<span class="math inline">\(n\)</span>个月，每个月有<span
-class="math inline">\(d_i\)</span>天，找一年中的中间一天是几月几日。</p>
-<h3 id="解题思路-1">解题思路</h3>
+<br>
+<hr>
+<h2 id="B-The-Middle-Day-abc315-B"><a target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_b">B - The Middle Day (abc315 B)</a></h2>
+<h3 id="题目大意-2">题目大意</h3>
+<p>给定一年有$n$个月，每个月有$d_i$天，找一年中的中间一天是几月几日。</p>
+<h3 id="解题思路-2">解题思路</h3>
 <p>无</p>
 <details>
-<summary>
-神奇的代码
-</summary>
+  <summary>神奇的代码</summary>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span><br><br><span class="hljs-keyword">using</span> i64 = <span class="hljs-type">long</span> <span class="hljs-type">long</span>;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::ios::<span class="hljs-built_in">sync_with_stdio</span>(<span class="hljs-literal">false</span>);<br>    std::cin.<span class="hljs-built_in">tie</span>(<span class="hljs-literal">nullptr</span>);<br><br>    <span class="hljs-type">int</span> n;<br>    std::cin &gt;&gt; n;<br><br>    i64 sum = <span class="hljs-number">0</span>;<br>    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">mouth</span><span class="hljs-params">(n + <span class="hljs-number">1</span>)</span></span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>;i &lt;= n;i ++) &#123;<br>        std::cin &gt;&gt; mouth[i];<br>        sum += mouth[i];<br>    &#125;<br><br>    i64 mid = (sum + <span class="hljs-number">1</span>) / <span class="hljs-number">2</span>;<br><br>    <span class="hljs-type">int</span> cur = <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">while</span> (mid &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">if</span> (mid - mouth[cur] &lt;= <span class="hljs-number">0</span>) <span class="hljs-keyword">break</span>;<br>        mid -= mouth[cur ++];<br>    &#125;<br><br>    std::cout &lt;&lt; cur &lt;&lt; <span class="hljs-string">&#x27; &#x27;</span> &lt;&lt; mid &lt;&lt; std::endl;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 </details>
-<p><br></p>
-<hr />
-<h2 id="c---flavors-abc315-c"><a
-target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_c">C - Flavors
-(abc315 C)</a></h2>
-<h3 id="题目大意-2">题目大意</h3>
-<p>有<span class="math inline">\(n\)</span>盘菜，种类和好吃度分别为<span
-class="math inline">\(f_i\)</span>和<span
-class="math inline">\(s_i\)</span>，从中选择两盘菜来吃。如果种类相同，则满意度为<span
-class="math inline">\(s + \frac{t}{2}\)</span>， 否则为<span
-class="math inline">\(s + t\)</span>。求出最大满意度。</p>
-<h3 id="解题思路-2">解题思路</h3>
+<br>
+<hr>
+<h2 id="C-Flavors-abc315-C"><a target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_c">C - Flavors (abc315 C)</a></h2>
+<h3 id="题目大意-3">题目大意</h3>
+<p>有$n$盘菜，种类和好吃度分别为$f_i$和$s_i$，从中选择两盘菜来吃。如果种类相同，则满意度为$s + \frac{t}{2}$， 否则为$s + t$。求出最大满意度。</p>
+<h3 id="解题思路-3">解题思路</h3>
 <p>枚举一下可能出现的情况就好。</p>
 <p>首先枚举每个种类的菜好吃度最大的两盘的满意度。然后枚举不同种类中好吃度最大的两盘菜。最后输出最大值即可。</p>
 <details>
-<summary>
-神奇的代码
-</summary>
+  <summary>神奇的代码</summary>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;algorithm&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;functional&gt;</span></span><br><br><span class="hljs-keyword">using</span> i64 = <span class="hljs-type">long</span> <span class="hljs-type">long</span>;<br><span class="hljs-keyword">using</span> PII = std::pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::ios::<span class="hljs-built_in">sync_with_stdio</span>(<span class="hljs-literal">false</span>);<br>    std::cin.<span class="hljs-built_in">tie</span>(<span class="hljs-literal">nullptr</span>);<br><br>    <span class="hljs-type">int</span> n;<br>    std::cin &gt;&gt; n;<br><br>    std::vector&lt;std::vector&lt;<span class="hljs-type">int</span>&gt;&gt; <span class="hljs-built_in">a</span>(n + <span class="hljs-number">1</span>, std::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-type">int</span>&gt;());<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>;i &lt;= n;i ++) &#123;<br>        <span class="hljs-type">int</span> x, y;<br>        std::cin &gt;&gt; x &gt;&gt; y;<br>        a[x].<span class="hljs-built_in">emplace_back</span>(y);<br>    &#125;<br><br>    <span class="hljs-type">int</span> ans = <span class="hljs-number">0</span>;<br>    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">max</span><span class="hljs-params">(n + <span class="hljs-number">1</span>)</span></span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>;i &lt;= n;i ++) &#123;<br>        <span class="hljs-keyword">if</span> (a[i].<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">continue</span>;<br>        std::<span class="hljs-built_in">nth_element</span>(a[i].<span class="hljs-built_in">begin</span>(), a[i].<span class="hljs-built_in">begin</span>()<span class="hljs-number">+1</span>, a[i].<span class="hljs-built_in">end</span>(), std::<span class="hljs-built_in">greater</span>&lt;<span class="hljs-type">int</span>&gt;());<br>        <span class="hljs-keyword">if</span> (a[i].<span class="hljs-built_in">size</span>() &gt;= <span class="hljs-number">2</span>) &#123;<br>            ans = std::<span class="hljs-built_in">max</span>(ans, a[i][<span class="hljs-number">0</span>] + a[i][<span class="hljs-number">1</span>] / <span class="hljs-number">2</span>);<br>        &#125;<br>        max[i] = a[i][<span class="hljs-number">0</span>];<br>    &#125;<br><br>    std::<span class="hljs-built_in">nth_element</span>(max.<span class="hljs-built_in">begin</span>(), max.<span class="hljs-built_in">begin</span>() + <span class="hljs-number">1</span>, max.<span class="hljs-built_in">end</span>(), std::<span class="hljs-built_in">greater</span>&lt;<span class="hljs-type">int</span>&gt;());<br>    ans = std::<span class="hljs-built_in">max</span>(ans, max[<span class="hljs-number">0</span>] + max[<span class="hljs-number">1</span>]);<br>    std::cout &lt;&lt; ans &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 </details>
-<p><br></p>
-<hr />
-<h2 id="d---magical-cookies-abc315-d"><a
-target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_d">D - Magical
-Cookies (abc315 D)</a></h2>
-<h3 id="题目大意-3">题目大意</h3>
-<p>在<span class="math inline">\(n*m\)</span>的
-网格中，每个格子有一块点心，种类为<span
-class="math inline">\(c_{ij}\)</span>，当一行或一列有两块以上相同种类的点心时，将他们都删去。求最后网格还剩多少块点心。</p>
-<h3 id="解题思路-3">解题思路</h3>
+<br>
+<hr>
+<h2 id="D-Magical-Cookies-abc315-D"><a target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_d">D - Magical Cookies (abc315 D)</a></h2>
+<h3 id="题目大意-4">题目大意</h3>
+<p>在$n*m$的 网格中，每个格子有一块点心，种类为$c_{ij}$，当一行或一列有两块以上相同种类的点心时，将他们都删去。求最后网格还剩多少块点心。</p>
+<h3 id="解题思路-4">解题思路</h3>
 <p>硬模拟。</p>
 <details>
-<summary>
-神奇的代码
-</summary>
+  <summary>神奇的代码</summary>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;array&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span><br><br><span class="hljs-keyword">using</span> i64 = <span class="hljs-type">long</span> <span class="hljs-type">long</span>;<br><span class="hljs-keyword">using</span> PII = std::pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::ios::<span class="hljs-built_in">sync_with_stdio</span>(<span class="hljs-literal">false</span>);<br>    std::cin.<span class="hljs-built_in">tie</span>(<span class="hljs-literal">nullptr</span>);<br><br>    <span class="hljs-type">int</span> n, m;<br>    std::cin &gt;&gt; n &gt;&gt; m;<br><br>    std::vector&lt;std::vector&lt;<span class="hljs-type">char</span>&gt;&gt; <span class="hljs-built_in">a</span>(n + <span class="hljs-number">1</span>, std::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-type">char</span>&gt;(m + <span class="hljs-number">1</span>));<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>;i &lt;= n;i ++) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">1</span>;j &lt;= m;j ++) &#123;<br>            std::cin &gt;&gt; a[i][j];<br>        &#125;<br>    &#125;<br><br>    std::vector&lt;std::array&lt;<span class="hljs-type">int</span>, 27&gt;&gt; <span class="hljs-built_in">cntr</span>(n + <span class="hljs-number">1</span>), <span class="hljs-built_in">cntc</span>(m + <span class="hljs-number">1</span>);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>;i &lt;= n;i ++) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">1</span>;j &lt;= m;j ++) &#123;<br>            cntr[i][a[i][j] - <span class="hljs-string">&#x27;a&#x27;</span>] ++;<br>            cntc[j][a[i][j] - <span class="hljs-string">&#x27;a&#x27;</span>] ++;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-function">std::vector&lt;<span class="hljs-type">bool</span>&gt; <span class="hljs-title">visr</span><span class="hljs-params">(n + <span class="hljs-number">1</span>)</span>, <span class="hljs-title">visc</span><span class="hljs-params">(m + <span class="hljs-number">1</span>)</span></span>;<br>    <span class="hljs-type">int</span> hc = n, wc = m;<br>    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> _ = <span class="hljs-number">1</span>; _ &lt;= n + m; _++) &#123;<br>        std::vector&lt;PII&gt; tx, ty;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; i++) &#123;<br>            <span class="hljs-keyword">if</span>(visr[i]) <span class="hljs-keyword">continue</span>;<br>            <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; <span class="hljs-number">26</span>; j++) &#123;<br>                <span class="hljs-keyword">if</span>(cntr[i][j] == wc &amp;&amp; wc &gt; <span class="hljs-number">1</span>) &#123;<br>                    tx.<span class="hljs-built_in">emplace_back</span>(i, j);<br>                &#125;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= m; i++) &#123;<br>            <span class="hljs-keyword">if</span>(visc[i]) <span class="hljs-keyword">continue</span>;<br>            <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; <span class="hljs-number">26</span>; j++) &#123;<br>                <span class="hljs-keyword">if</span>(cntc[i][j] == hc &amp;&amp; hc &gt; <span class="hljs-number">1</span>) &#123;<br>                    ty.<span class="hljs-built_in">emplace_back</span>(i, j);<br>                &#125;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">auto</span> &amp;[x, y] : tx) &#123;<br>            visr[x] = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= m; i++) &#123;<br>                cntc[i][y]--;<br>            &#125;<br>            hc--;<br>        &#125;<br><br>         <span class="hljs-keyword">for</span>(<span class="hljs-keyword">auto</span> &amp;[x, y] : ty) &#123;<br>            visc[x] = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; i++) &#123;<br>                cntr[i][y]--;<br>            &#125;<br>            wc--;   <br>        &#125;<br>    &#125;<br><br>    std::cout &lt;&lt; wc * hc &lt;&lt; <span class="hljs-string">&quot;\n&quot;</span>;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 </details>
-<p><br></p>
-<hr />
-<h2 id="e---prerequisites-abc315-e"><a
-target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_e">E -
-Prerequisites (abc315 E)</a></h2>
-<h3 id="题目大意-4">题目大意</h3>
-<p>有<span
-class="math inline">\(n\)</span>本书，每本书需要先读给定的<span
-class="math inline">\(c_i\)</span>本书才能读。求读第一本书之前需要读的读书顺序。要求需要读的书籍最小。</p>
-<h3 id="解题思路-4">解题思路</h3>
-<p><span
-class="math inline">\(dfs\)</span>去找每本书需要的前置书籍，然后递归回来的顺序就是需要的顺序。好像拓扑排序也能写。</p>
+<br>
+<hr>
+<h2 id="E-Prerequisites-abc315-E"><a target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_e">E - Prerequisites (abc315 E)</a></h2>
+<h3 id="题目大意-5">题目大意</h3>
+<p>有$n$本书，每本书需要先读给定的$c_i$本书才能读。求读第一本书之前需要读的读书顺序。要求需要读的书籍最小。</p>
+<h3 id="解题思路-5">解题思路</h3>
+<p>$dfs$去找每本书需要的前置书籍，然后递归回来的顺序就是需要的顺序。好像拓扑排序也能写。</p>
 <details>
-<summary>
-神奇的代码
-</summary>
+  <summary>神奇的代码</summary>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;algorithm&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;array&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span><br><br><span class="hljs-keyword">using</span> i64 = <span class="hljs-type">long</span> <span class="hljs-type">long</span>;<br><span class="hljs-keyword">using</span> PII = std::pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::ios::<span class="hljs-built_in">sync_with_stdio</span>(<span class="hljs-literal">false</span>);<br>    std::cin.<span class="hljs-built_in">tie</span>(<span class="hljs-literal">nullptr</span>);  <br><br>    <span class="hljs-type">int</span> n;<br>    std::cin &gt;&gt; n;<br>    <br>    std::vector&lt;std::vector&lt;<span class="hljs-type">int</span>&gt;&gt; <span class="hljs-built_in">g</span>(n + <span class="hljs-number">1</span>, std::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-type">int</span>&gt;());<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>;i &lt;= n;i ++) &#123;<br>        <span class="hljs-type">int</span> c;<br>        std::cin &gt;&gt; c;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> _ = <span class="hljs-number">1</span>;_ &lt;= c;_ ++) &#123;<br>            <span class="hljs-type">int</span> x;<br>            std::cin &gt;&gt; x;<br>            g[i].<span class="hljs-built_in">emplace_back</span>(x);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-function">std::vector&lt;<span class="hljs-type">bool</span>&gt; <span class="hljs-title">vis</span><span class="hljs-params">(n + <span class="hljs-number">1</span>)</span></span>;<br>    std::function&lt;<span class="hljs-type">void</span>(<span class="hljs-type">int</span>)&gt; dfs = [&amp;](<span class="hljs-type">int</span> u) -&gt; <span class="hljs-type">void</span> &#123;<br>        <span class="hljs-keyword">if</span> (vis[u]) <span class="hljs-keyword">return</span> ;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : g[u]) &#123;<br>            <span class="hljs-built_in">dfs</span>(v);<br>        &#125;<br>        vis[u] = <span class="hljs-literal">true</span>;<br>        <span class="hljs-keyword">if</span> (u != <span class="hljs-number">1</span>) &#123;<br>            std::cout &lt;&lt; u &lt;&lt; <span class="hljs-string">&#x27; &#x27;</span>;<br>        &#125;<br>    &#125;;<br><br>    <span class="hljs-built_in">dfs</span>(<span class="hljs-number">1</span>);<br>    std::cout &lt;&lt; std::endl;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 </details>
-<p><br></p>
-<hr />
-<h2 id="f---shortcuts-abc315-f"><a
-target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_f">F - Shortcuts
-(abc315 F)</a></h2>
-<h3 id="题目大意-5">题目大意</h3>
+<br>
+<hr>
+<h2 id="F-Shortcuts-abc315-F"><a target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_f">F - Shortcuts (abc315 F)</a></h2>
+<h3 id="题目大意-6">题目大意</h3>
 <p>balabalabala好难概括。</p>
-<h3 id="解题思路-5">解题思路</h3>
-<p>设<span class="math inline">\(dp[i][j]\)</span>为走了前<span
-class="math inline">\(i\)</span>个点，已经跳过了<span
-class="math inline">\(j\)</span>个点，需要走的最小距离。</p>
-<p>最大答案大约是<span
-class="math inline">\(1e4*1e4\)</span>，这时候跳过<span
-class="math inline">\(30\)</span>个点就大于了，所以只需要枚举跳过<span
-class="math inline">\(30\)</span>个点以内的情况。</p>
+<h3 id="解题思路-6">解题思路</h3>
+<p>设$dp[i][j]$为走了前$i$个点，已经跳过了$j$个点，需要走的最小距离。</p>
+<p>最大答案大约是$1e4*1e4$，这时候跳过$30$个点就大于了，所以只需要枚举跳过$30$个点以内的情况。</p>
 <details>
-<summary>
-神奇的代码
-</summary>
+  <summary>神奇的代码</summary>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span><br><br><span class="hljs-keyword">using</span> i64 = <span class="hljs-type">long</span> <span class="hljs-type">long</span>;<br><br><span class="hljs-keyword">constexpr</span> <span class="hljs-type">int</span> K = <span class="hljs-number">30</span>;<br><span class="hljs-keyword">constexpr</span> <span class="hljs-type">double</span> inf = <span class="hljs-number">1E9</span>;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::ios::<span class="hljs-built_in">sync_with_stdio</span>(<span class="hljs-literal">false</span>);<br>    std::cin.<span class="hljs-built_in">tie</span>(<span class="hljs-literal">nullptr</span>);<br>    <br>    <span class="hljs-type">int</span> N;<br>    std::cin &gt;&gt; N;<br>    <br>    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">X</span><span class="hljs-params">(N)</span>, <span class="hljs-title">Y</span><span class="hljs-params">(N)</span></span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; N; i++) &#123;<br>        std::cin &gt;&gt; X[i] &gt;&gt; Y[i];<br>    &#125;<br>    <br>    std::vector&lt;std::vector&lt;<span class="hljs-type">double</span>&gt;&gt; <span class="hljs-built_in">dp</span>(N, std::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-type">double</span>&gt;(K, inf));<br>    <span class="hljs-type">double</span> ans = inf;<br>    dp[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; N - <span class="hljs-number">1</span>; i++) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; K; j++) &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x = i + <span class="hljs-number">1</span>; x &lt; N &amp;&amp; j + x - i - <span class="hljs-number">1</span> &lt; K; x++) &#123;<br>                <span class="hljs-type">int</span> nj = j + x - i - <span class="hljs-number">1</span>; <br>                dp[x][nj] = std::<span class="hljs-built_in">min</span>(dp[x][nj], dp[i][j] + std::<span class="hljs-built_in">sqrt</span>((X[i] - X[x]) * (X[i] - X[x]) + (Y[i] - Y[x]) * (Y[i] - Y[x])));<br>            &#125;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; K; i++) &#123;<br>        ans = std::<span class="hljs-built_in">min</span>(ans, dp[N - <span class="hljs-number">1</span>][i] + (i == <span class="hljs-number">0</span> ? <span class="hljs-number">0</span> : <span class="hljs-number">1</span> &lt;&lt; (i - <span class="hljs-number">1</span>)));<br>    &#125;<br>    std::cout &lt;&lt; std::fixed &lt;&lt; std::<span class="hljs-built_in">setprecision</span>(<span class="hljs-number">10</span>) &lt;&lt; ans &lt;&lt; <span class="hljs-string">&quot;\n&quot;</span>;<br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
 </details>
-<p><br></p>
-<hr />
-<h2 id="g---ai-bj-ck-x-1-i-j-k-n-abc315-g"><a
-target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_g">G - Ai + Bj +
-Ck = X (1 &lt;= i, j, k &lt;= N) (abc315 G)</a></h2>
-<h3 id="题目大意-6">题目大意</h3>
-<p>&lt;++&gt;</p>
-<h3 id="解题思路-6">解题思路</h3>
-<p>&lt;++&gt;</p>
-<details>
-<summary>
-神奇的代码
-</summary>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><br></code></pre></td></tr></table></figure>
-</details>
-<p><br></p>
-<hr />
-<h2 id="ex---typical-convolution-problem-abc315-ex"><a
-target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_h">Ex - Typical
-Convolution Problem (abc315 Ex)</a></h2>
+<br>
+<hr>
+<h2 id="G-Ai-Bj-Ck-X-1-i-j-k-N-abc315-G"><a target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_g">G - Ai + Bj + Ck = X (1 &lt;= i, j, k &lt;= N) (abc315 G)</a></h2>
 <h3 id="题目大意-7">题目大意</h3>
 <p>&lt;++&gt;</p>
 <h3 id="解题思路-7">解题思路</h3>
 <p>&lt;++&gt;</p>
 <details>
-<summary>
-神奇的代码
-</summary>
+  <summary>神奇的代码</summary>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><br></code></pre></td></tr></table></figure>
 </details>
-<p><br></p>
-<hr />
+<br>
+<hr>
+<h2 id="Ex-Typical-Convolution-Problem-abc315-Ex"><a target="_blank" rel="noopener" href="https://atcoder.jp/contests/abc315/tasks/abc315_h">Ex - Typical Convolution Problem (abc315 Ex)</a></h2>
+<h3 id="题目大意-8">题目大意</h3>
+<p>&lt;++&gt;</p>
+<h3 id="解题思路-8">解题思路</h3>
+<p>&lt;++&gt;</p>
+<details>
+  <summary>神奇的代码</summary>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><br></code></pre></td></tr></table></figure>
+</details>
+<br>
+<hr>
 
                 
               </div>
