@@ -21,12 +21,12 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="4.1 ISA &amp; Assembly Language $ISA$: $Instruction \space Set$。 $workflow$: $C \rightarrow Assembly(.S&#x2F;.asm) \rightarrow binary(object.o)$ 汇编语言没有明确的工作流，只是一行一行的执行指令。汇编语言是基于寄存器进行操作的，而不是内存。 $RISC-V \spa">
+    <meta name="description" content="4.1 ISA &amp; Assembly Language \(ISA\): \(Instruction \space Set\)。 \(workflow\): \(C \rightarrow Assembly(.S&#x2F;.asm) \rightarrow binary(object.o)\) 汇编语言没有明确的工作流，只是一行一行的执行指令。汇编语言是基于寄存器进行操作的，而不是内存。 \(RI">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 第四章笔记 | 陷入指令和中断">
 <meta property="og:url" content="https://acmicpc.top/2024/02/29/MIT-6.S081-lab04%20Notes/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="4.1 ISA &amp; Assembly Language $ISA$: $Instruction \space Set$。 $workflow$: $C \rightarrow Assembly(.S&#x2F;.asm) \rightarrow binary(object.o)$ 汇编语言没有明确的工作流，只是一行一行的执行指令。汇编语言是基于寄存器进行操作的，而不是内存。 $RISC-V \spa">
+<meta property="og:description" content="4.1 ISA &amp; Assembly Language \(ISA\): \(Instruction \space Set\)。 \(workflow\): \(C \rightarrow Assembly(.S&#x2F;.asm) \rightarrow binary(object.o)\) 汇编语言没有明确的工作流，只是一行一行的执行指令。汇编语言是基于寄存器进行操作的，而不是内存。 \(RI">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-04/riscv-caller.png">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-04/riscv-stack.png">
@@ -309,52 +309,88 @@
             
               <div class="markdown-body">
                 
-                <h2 id="4-1-ISA-Assembly-Language">4.1 ISA &amp; Assembly Language</h2>
-<p>$ISA$: $Instruction \space Set$。</p>
-<p>$workflow$:<br>
-$C \rightarrow Assembly(.S/.asm) \rightarrow binary(object.o)$</p>
+                <h2 id="isa-assembly-language">4.1 ISA &amp; Assembly Language</h2>
+<p><span class="math inline">\(ISA\)</span>: <span
+class="math inline">\(Instruction \space Set\)</span>。</p>
+<p><span class="math inline">\(workflow\)</span>: <span
+class="math inline">\(C \rightarrow Assembly(.S/.asm) \rightarrow
+binary(object.o)\)</span></p>
 <p>汇编语言没有明确的工作流，只是一行一行的执行指令。汇编语言是基于寄存器进行操作的，而不是内存。</p>
-<p>$RISC-V \space vs \space x86$</p>
+<p><span class="math inline">\(RISC-V \space vs \space x86\)</span></p>
 <ul>
-<li>$RISC-V$是精简指令集，指令数少，效率更高，不好维护。</li>
-<li>$x86$：复杂指令集，指令很多并且可以实现复杂功能</li>
+<li><span
+class="math inline">\(RISC-V\)</span>是精简指令集，指令数少，效率更高，不好维护。</li>
+<li><span
+class="math inline">\(x86\)</span>：复杂指令集，指令很多并且可以实现复杂功能</li>
 </ul>
-<h2 id="4-2-Calling-convention">4.2 Calling convention</h2>
-<p>调用约定($calling \space convention$)是规定子过程如何获取参数以及如何返回的方案，调用约定一般规定了:</p>
+<h2 id="calling-convention">4.2 Calling convention</h2>
+<p>调用约定(<span class="math inline">\(calling \space
+convention\)</span>)是规定子过程如何获取参数以及如何返回的方案，调用约定一般规定了:
+- 参数、返回值、返回地址等放置的位置(寄存器、栈或内存)。</p>
+<p>RISC-V通过寄存器来传递参数，而不是栈。<span class="math inline">\(a_0
+\rightarrow a_7\)</span> 是<code>int</code>参数，<span
+class="math inline">\(f_0 \rightarrow f_7\)</span>
+是<code>float</code>参数。</p>
 <ul>
-<li>参数、返回值、返回地址等放置的位置(寄存器、栈或内存)。</li>
-</ul>
-<p>RISC-V通过寄存器来传递参数，而不是栈。$a_0 \rightarrow a_7$ 是<code>int</code>参数，$f_0 \rightarrow f_7$ 是<code>float</code>参数。</p>
-<ul>
-<li>如何将调用子过程的准备工作与恢复现场的工作划分到调用者($caller$)与被调用者($callee$)身上。</li>
+<li>如何将调用子过程的准备工作与恢复现场的工作划分到调用者(<span
+class="math inline">\(caller\)</span>)与被调用者(<span
+class="math inline">\(callee\)</span>)身上。</li>
 </ul>
 <p>小于一个指针字(RISCV64中是8字节，RISCV32是4字节)的参数传入时将参数放在寄存器的最低位，因为RISC-V是小端系统，当2个指针字的参数传入时，低位的1个指针字放在偶数寄存器，比如a0上，高位的1个指针字放在奇数寄存器，比如a1上。当高于2个指针字的参数传入时以引用的方式传入。struct参数没有传到寄存器的部分将以栈的方式传入，sp栈指针将指向第一个没有传入到寄存器的参数。</p>
-<p>从函数返回的值，如果是整数将放在a0和a1中，如果是小数将放置在fa0和fa1寄存器中。对于更大的返回值，将放置在内存中，$caller$ 开辟这个内存，并且把指向这个内存的指针作为第一个参数传递给 $callee$</p>
-<p>由 $caller$ 保存的寄存器不会在函数调用之间被保存，又名易失性寄存器，如果要在过程调用后恢复该值，则调用方需要将这些寄存器压入堆栈或复制到其他位置，而 $callee$ 保存的寄存器会被保存，称为非易失性寄存器，可以期望这些寄存器在被调用者返回后保持相同的值。比如函数A调用了函数B，所有函数A保存的寄存器在函数B被调用后可以被B重写覆盖。</p>
-<p><img src="/img/6.S081/Lab-04/riscv-caller.png" srcset="/img/loading.gif" lazyload alt="RISC-V常用寄存器及使用约定"></p>
-<h2 id="4-3-Stack">4.3 Stack</h2>
-<p>栈从高地址向低地址增长，每个大的$box$叫一个$stack \space frame$（栈帧），栈帧由函数调用来分配，每个栈帧大小不一定一样，但是栈帧的最高处一定是$return \space address$。</p>
+<p>从函数返回的值，如果是整数将放在a0和a1中，如果是小数将放置在fa0和fa1寄存器中。对于更大的返回值，将放置在内存中，<span
+class="math inline">\(caller\)</span>
+开辟这个内存，并且把指向这个内存的指针作为第一个参数传递给 <span
+class="math inline">\(callee\)</span></p>
+<p>由 <span class="math inline">\(caller\)</span>
+保存的寄存器不会在函数调用之间被保存，又名易失性寄存器，如果要在过程调用后恢复该值，则调用方需要将这些寄存器压入堆栈或复制到其他位置，而
+<span class="math inline">\(callee\)</span>
+保存的寄存器会被保存，称为非易失性寄存器，可以期望这些寄存器在被调用者返回后保持相同的值。比如函数A调用了函数B，所有函数A保存的寄存器在函数B被调用后可以被B重写覆盖。</p>
+<figure>
+<img src="/img/6.S081/Lab-04/riscv-caller.png" srcset="/img/loading.gif" lazyload
+alt="RISC-V常用寄存器及使用约定" />
+<figcaption aria-hidden="true">RISC-V常用寄存器及使用约定</figcaption>
+</figure>
+<h2 id="stack">4.3 Stack</h2>
+<p>栈从高地址向低地址增长，每个大的<span
+class="math inline">\(box\)</span>叫一个<span
+class="math inline">\(stack \space
+frame\)</span>（栈帧），栈帧由函数调用来分配，每个栈帧大小不一定一样，但是栈帧的最高处一定是<span
+class="math inline">\(return \space address\)</span>。</p>
 <p>sp是stack pointer，用于指向栈顶（低地址），保存在寄存器中</p>
-<p>fp是frame pointer，用于指向当前帧底部（高地址），保存在寄存器中，同时每个函数栈帧中保存了调用当前函数的函数（父函数）的fp（保存在to prev frame那一栏中）</p>
+<p>fp是frame
+pointer，用于指向当前帧底部（高地址），保存在寄存器中，同时每个函数栈帧中保存了调用当前函数的函数（父函数）的fp（保存在to
+prev frame那一栏中）</p>
 <p>这些栈帧都是由编译器编译生成的汇编文件生成的</p>
-<p><img src="/img/6.S081/Lab-04/riscv-stack.png" srcset="/img/loading.gif" lazyload alt="RISC-V栈"></p>
-<h2 id="4-4-trap">4.4 trap</h2>
-<p>3种可能的情况使得CPU暂停对正常指令的执行，并强制将控制权转移到处理该事件的特殊代码：1. syscall，移交给kernel 2. exception，指令执行了非法操作 3. 设备中断。以上情况合并称为trap。</p>
+<figure>
+<img src="/img/6.S081/Lab-04/riscv-stack.png" srcset="/img/loading.gif" lazyload alt="RISC-V栈" />
+<figcaption aria-hidden="true">RISC-V栈</figcaption>
+</figure>
+<h2 id="trap">4.4 trap</h2>
+<p>3种可能的情况使得CPU暂停对正常指令的执行，并强制将控制权转移到处理该事件的特殊代码：1.
+syscall，移交给kernel 2. exception，指令执行了非法操作 3.
+设备中断。以上情况合并称为trap。</p>
 <p>trap应该对于被打断的指令是透明的，也就是说被打断的指令不应该知道这个地方产生了trap，产生trap之后现场应该得以恢复并继续执行被打断的指令。</p>
-<p>xv6对trap的处理分为四个阶段：1. 对RISC-V CPU的硬件的一些操作 2. 一些为运行kernel C语言文件做准备的汇编文件 3. 用C实现的trap handler(暂且翻译为异常处理程序) 4. system call / device-driver service routine</p>
-<p>通常对于user space的trap、kernel space的trap和计时器中断会有不同的trap handler</p>
-<h2 id="4-5-RISC-V-trap-machinery">4.5 RISC-V trap machinery</h2>
-<p>RISC-V CPU有一系列的控制寄存器可以通知kernel发生了trap，也可以由kernel写入来告诉CPU怎样处理trap。</p>
+<p>xv6对trap的处理分为四个阶段：1. 对RISC-V CPU的硬件的一些操作 2.
+一些为运行kernel C语言文件做准备的汇编文件 3. 用C实现的trap
+handler(暂且翻译为异常处理程序) 4. system call / device-driver service
+routine</p>
+<p>通常对于user space的trap、kernel
+space的trap和计时器中断会有不同的trap handler</p>
+<h2 id="risc-v-trap-machinery">4.5 RISC-V trap machinery</h2>
+<p>RISC-V
+CPU有一系列的控制寄存器可以通知kernel发生了trap，也可以由kernel写入来告诉CPU怎样处理trap。</p>
 <ul>
 <li><code>stvec</code>：异常处理程序的地址。由内核填入。</li>
-<li><code>sepc</code>： 保存trap发生时当前的<code>PC</code>寄存器值，之后<code>PC</code>的值被<code>stvec</code>覆盖。通过<code>sret</code>指令将<code>sepc</code>值也入<code>PC</code>,达到回复现场的作用。</li>
+<li><code>sepc</code>：
+保存trap发生时当前的<code>PC</code>寄存器值，之后<code>PC</code>的值被<code>stvec</code>覆盖。通过<code>sret</code>指令将<code>sepc</code>值也入<code>PC</code>,达到回复现场的作用。</li>
 <li><code>scause</code>： 填入产生trap的原因，有CPU写入。</li>
 <li><code>sscartch</code>： 异常处理程序使用的一组寄存器。</li>
-<li><code>sstatus</code>： SIE位控制设备中断是否被开启，SPP位指示trap是来自内核还是用户程序。</li>
+<li><code>sstatus</code>：
+SIE位控制设备中断是否被开启，SPP位指示trap是来自内核还是用户程序。</li>
 </ul>
 <p>以上寄存器都只在监管模式被启动。</p>
 <p>当发生除了计时器中断以外的其他类型的trap时，RISC-V将执行以下步骤：</p>
-<ol>
+<ol type="1">
 <li>如果trap是一个设备产生的中断，而SIE又被清除的情况下，不做下方的任何动作。</li>
 <li>清除SIE来disable一切中断。</li>
 <li>把pc复制到sepc。</li>
@@ -365,10 +401,17 @@ $C \rightarrow Assembly(.S/.asm) \rightarrow binary(object.o)$</p>
 <li>开始执行pc指向的trap handler的代码。</li>
 </ol>
 <p>注意CPU并没有切换到kernel页表，也没有切换到kernel栈,也不会保存除PC外的其他寄存器值。这些操作都应该由内核完成。</p>
-<h2 id="4-6-Traps-from-user-space">4.6 Traps from user space</h2>
+<h2 id="traps-from-user-space">4.6 Traps from user space</h2>
 <p>如果用户程序进行系统调用(调用<code>ecall</code>指令)、执行非法操作或者设备中断时，就会产生trap。</p>
-<p>当user space中发生trap时，会将<code>stvec</code>的值复制到<code>pc</code>，而此时<code>stvec</code>的值是<code>trampoline.S</code>中的<code>uservec</code>，因此跳转到<code>uservec</code>函数。该函数先保存一些现场的寄存器，恢复kernel栈指针、kernel page table到satp寄存器，再跳转到<code>usertrap</code>(<code>kernel/trap.c</code>)这个用户trap通用执行器。然后返回<code>usertrapret</code>(<code>kernel/trap.c</code>)，跳回到<code>kernel/trampoline.S</code>，最后用<code>userret(kernel/trampoline.S)</code>通过<code>sret</code>跳回到user space。</p>
-<p>RISC-V在trap中不会改变页表，因此user page table必须有对<code>uservec</code>的mapping，<code>uservec</code>是<code>stvec</code>指向的trap vector instruction。uservec要切换satp到kernel页表，同时kernel页表中也要有和user页表中对uservec相同的映射。RISC-V将<code>uservec</code>保存在<code>trampoline</code>页中，并将<code>TRAMPOLINE</code>放在kernel页表和user页表的相同位置处（MAXVA）。</p>
+<p>当user
+space中发生trap时，会将<code>stvec</code>的值复制到<code>pc</code>，而此时<code>stvec</code>的值是<code>trampoline.S</code>中的<code>uservec</code>，因此跳转到<code>uservec</code>函数。该函数先保存一些现场的寄存器，恢复kernel栈指针、kernel
+page
+table到satp寄存器，再跳转到<code>usertrap</code>(<code>kernel/trap.c</code>)这个用户trap通用执行器。然后返回<code>usertrapret</code>(<code>kernel/trap.c</code>)，跳回到<code>kernel/trampoline.S</code>，最后用<code>userret(kernel/trampoline.S)</code>通过<code>sret</code>跳回到user
+space。</p>
+<p>RISC-V在trap中不会改变页表，因此user page
+table必须有对<code>uservec</code>的mapping，<code>uservec</code>是<code>stvec</code>指向的trap
+vector
+instruction。uservec要切换satp到kernel页表，同时kernel页表中也要有和user页表中对uservec相同的映射。RISC-V将<code>uservec</code>保存在<code>trampoline</code>页中，并将<code>TRAMPOLINE</code>放在kernel页表和user页表的相同位置处（MAXVA）。</p>
 
                 
               </div>

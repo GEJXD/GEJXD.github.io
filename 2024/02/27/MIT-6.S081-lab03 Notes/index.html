@@ -21,12 +21,12 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="页表让每个进程都拥有自己独立的虚拟内存，从而实现内存隔离。 3.1 Paging hardware 用户和内核都只能操作虚拟地址($virtual \space address$)，但是实际物理内存使用物理地址($physical \space address$)来索引。页表提供了虚拟地址到逻辑地址的转换。 xv6只使用了64位地址空间中的低39位，其中高$27$位为页面号，低$12$位为页内偏移">
+    <meta name="description" content="页表让每个进程都拥有自己独立的虚拟内存，从而实现内存隔离。 3.1 Paging hardware 用户和内核都只能操作虚拟地址(\(virtual \space address\))，但是实际物理内存使用物理地址(\(physical \space address\))来索引。页表提供了虚拟地址到逻辑地址的转换。 xv6只使用了64位地址空间中的低39位，其中高\(27\)位为页面号，低\(12">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 第三章笔记 | 页表">
 <meta property="og:url" content="https://acmicpc.top/2024/02/27/MIT-6.S081-lab03%20Notes/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="页表让每个进程都拥有自己独立的虚拟内存，从而实现内存隔离。 3.1 Paging hardware 用户和内核都只能操作虚拟地址($virtual \space address$)，但是实际物理内存使用物理地址($physical \space address$)来索引。页表提供了虚拟地址到逻辑地址的转换。 xv6只使用了64位地址空间中的低39位，其中高$27$位为页面号，低$12$位为页内偏移">
+<meta property="og:description" content="页表让每个进程都拥有自己独立的虚拟内存，从而实现内存隔离。 3.1 Paging hardware 用户和内核都只能操作虚拟地址(\(virtual \space address\))，但是实际物理内存使用物理地址(\(physical \space address\))来索引。页表提供了虚拟地址到逻辑地址的转换。 xv6只使用了64位地址空间中的低39位，其中高\(27\)位为页面号，低\(12">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-03/figure3-1.png">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-03/figure3-2.png">
@@ -311,12 +311,41 @@
               <div class="markdown-body">
                 
                 <p>页表让每个进程都拥有自己独立的虚拟内存，从而实现内存隔离。</p>
-<h2 id="3-1-Paging-hardware">3.1 Paging hardware</h2>
-<p>用户和内核都只能操作虚拟地址($virtual \space address$)，但是实际物理内存使用物理地址($physical \space address$)来索引。页表提供了虚拟地址到逻辑地址的转换。</p>
-<p>xv6只使用了64位地址空间中的低39位，其中高$27$位为页面号，低$12$位为页内偏移，即$4096(2^{12})$字节一个$page$，同<code>kernel/riscv.h</code>中<code>PGSIZE</code>相同，一个进程的虚拟内存可以有$2^{27}$个$page$，对应到$2^{27}$个页表项$(page \space table \space entries, PTEs)$。每个$PTE$存储$44$位的物理地址和10位标记，总共$54$位，即一个PTE需要8字节来存储。每个物理地址高 $44$ 位是PTE中存储, 后$12$位用页内偏移。一个物理地址总共用$56$位表示。</p>
-<p><img src="/img/6.S081/Lab-03/figure3-1.png" srcset="/img/loading.gif" lazyload alt="Figure 3.1: RISC-V virtual and physical addresses, with a simplified logical page table."></p>
-<p>RISC-V页表并不是整个存储在内存中的(因为很难找到空闲的整块内存存储)，而是采用三级树结构，来使得页表空间可以动态分配和离散存储。每个页表就是一页。第一级页表是一个4096字节的页，包含了512个PTE（因为每个PTE需要8字节），每个PTE存储了下级页表的页物理地址。第二级列表由512个页构成($512 * 4096字节$)，第三级列表由512*512个页构成。因为每个进程虚拟地址的高27位用来确定PTE，对应到3级页表就是最高的9位确定一级页表PTE的位置(即偏移量)，中间9位确定二级页表PTE的位置，最低9位确定三级页表PTE的位置。每一页内地址是连续的，但是不同页之间内存不一定连续。如下图所示。第一级根页表的物理地址存储在<code>satp</code>寄存器中，每个CPU核心拥有自己独立的<code>satp</code>。</p>
-<p><img src="/img/6.S081/Lab-03/figure3-2.png" srcset="/img/loading.gif" lazyload alt="Figure 3.2: RISC-V address translation details."></p>
+<h2 id="paging-hardware">3.1 Paging hardware</h2>
+<p>用户和内核都只能操作虚拟地址(<span class="math inline">\(virtual
+\space address\)</span>)，但是实际物理内存使用物理地址(<span
+class="math inline">\(physical \space
+address\)</span>)来索引。页表提供了虚拟地址到逻辑地址的转换。</p>
+<p>xv6只使用了64位地址空间中的低39位，其中高<span
+class="math inline">\(27\)</span>位为页面号，低<span
+class="math inline">\(12\)</span>位为页内偏移，即<span
+class="math inline">\(4096(2^{12})\)</span>字节一个<span
+class="math inline">\(page\)</span>，同<code>kernel/riscv.h</code>中<code>PGSIZE</code>相同，一个进程的虚拟内存可以有<span
+class="math inline">\(2^{27}\)</span>个<span
+class="math inline">\(page\)</span>，对应到<span
+class="math inline">\(2^{27}\)</span>个页表项<span
+class="math inline">\((page \space table \space entries,
+PTEs)\)</span>。每个<span class="math inline">\(PTE\)</span>存储<span
+class="math inline">\(44\)</span>位的物理地址和10位标记，总共<span
+class="math inline">\(54\)</span>位，即一个PTE需要8字节来存储。每个物理地址高
+<span class="math inline">\(44\)</span> 位是PTE中存储, 后<span
+class="math inline">\(12\)</span>位用页内偏移。一个物理地址总共用<span
+class="math inline">\(56\)</span>位表示。</p>
+<figure>
+<img src="/img/6.S081/Lab-03/figure3-1.png" srcset="/img/loading.gif" lazyload
+alt="Figure 3.1: RISC-V virtual and physical addresses, with a simplified logical page table." />
+<figcaption aria-hidden="true">Figure 3.1: RISC-V virtual and physical
+addresses, with a simplified logical page table.</figcaption>
+</figure>
+<p>RISC-V页表并不是整个存储在内存中的(因为很难找到空闲的整块内存存储)，而是采用三级树结构，来使得页表空间可以动态分配和离散存储。每个页表就是一页。第一级页表是一个4096字节的页，包含了512个PTE（因为每个PTE需要8字节），每个PTE存储了下级页表的页物理地址。第二级列表由512个页构成(<span
+class="math inline">\(512 *
+4096字节\)</span>)，第三级列表由512*512个页构成。因为每个进程虚拟地址的高27位用来确定PTE，对应到3级页表就是最高的9位确定一级页表PTE的位置(即偏移量)，中间9位确定二级页表PTE的位置，最低9位确定三级页表PTE的位置。每一页内地址是连续的，但是不同页之间内存不一定连续。如下图所示。第一级根页表的物理地址存储在<code>satp</code>寄存器中，每个CPU核心拥有自己独立的<code>satp</code>。</p>
+<figure>
+<img src="/img/6.S081/Lab-03/figure3-2.png" srcset="/img/loading.gif" lazyload
+alt="Figure 3.2: RISC-V address translation details." />
+<figcaption aria-hidden="true">Figure 3.2: RISC-V address translation
+details.</figcaption>
+</figure>
 <p>PTE flag可以告诉硬件这些相应的虚## 3.4 Physical memory allocation</p>
 <p>xv6在运行时分配或释放页表、用户内存、内核栈、管道缓冲区等各种物理内存的不同用途。xv6中这些内存都分配在<strong>内核数据</strong>的末位和PHYSTOP之间，每次分配4096字节，即4KB空间。</p>
 <p>分配和释放是通过对空闲页链表进行追踪完成的(<code>kernel/kalloc.c:struct kmem</code>)，分配空间就是将一个页从链表中移除，释放空间就是将一页增加到链表中。</p>
@@ -325,10 +354,10 @@
 <li><code>kinit</code>：初始化所有空闲内存列表，在内核刚启动的时候调用。从<code>kernel end</code>到<code>PHYSTOP</code>之间的所有内存都按页清空，并存放在<code>freelist</code>中。</li>
 <li><code>freerange</code>：将range中的每一个页面都调用一次<code>free()</code>来将其插入到<code>freelist</code>的末尾。</li>
 </ul>
-<h2 id="3-5-进程地址空间">3.5 进程地址空间</h2>
-<h2 id="3-2-Kernel-address-space">3.2 Kernel address space</h2>
-<p><code>QEMU</code>会模拟一块从<code>0x80000000</code>开始的内存，到至少<code>0x88000000</code>。<code>0x80000000</code>以下的地址被视为直接与设备交互，而不是内存。</p>
-<h2 id="3-4-Physical-memory-allocation">3.4 Physical memory allocation</h2>
+<h2 id="进程地址空间">3.5 进程地址空间</h2>
+<h2 id="kernel-address-space">3.2 Kernel address space</h2>
+<p><code>QEMU</code>会模拟一块从<code>0x80000000</code>开始的内存，到至少<code>0x88000000</code>。<code>0x80000000</code>以下的地址被视为直接与设备交互，而不是内存。
+## 3.4 Physical memory allocation</p>
 <p>xv6在运行时分配或释放页表、用户内存、内核栈、管道缓冲区等各种物理内存的不同用途。xv6中这些内存都分配在<strong>内核数据</strong>的末位和PHYSTOP之间，每次分配4096字节，即4KB空间。</p>
 <p>分配和释放是通过对空闲页链表进行追踪完成的(<code>kernel/kalloc.c:struct kmem</code>)，分配空间就是将一个页从链表中移除，释放空间就是将一页增加到链表中。</p>
 <p>kernel的物理空间的分配函数在<code>kernel/kalloc.c</code>中，每个页在链表中的元素是<code>struct run</code>，每个run存储在空闲页本身中。这个空闲页的链表<code>freelist</code>由<code>spin lock</code>保护，包装在<code>struct kmem</code>中。</p>
@@ -336,22 +365,28 @@
 <li><code>kinit</code>：初始化所有空闲内存列表，在内核刚启动的时候调用。从<code>kernel end</code>到<code>PHYSTOP</code>之间的所有内存都按页清空，并存放在<code>freelist</code>中。</li>
 <li><code>freerange</code>：将range中的每一个页面都调用一次<code>free()</code>来将其插入到<code>freelist</code>的末尾。</li>
 </ul>
-<h2 id="3-5-进程地址空间-2">3.5 进程地址空间</h2>
+<h2 id="进程地址空间-1">3.5 进程地址空间</h2>
 <ul>
 <li><code>trampoline page</code>在用户空间和内核空间中都在同一个虚拟地址。以便能在<code>user</code>和<code>kernel</code>间切换时方便的访问。</li>
-<li>kernel stack page：每个进程有一个自己的内核栈kstack，每个kstack下面有一个没有被映射的guard page，guard page的作用是防止kstack溢出影响其他kstack。</li>
+<li>kernel stack
+page：每个进程有一个自己的内核栈kstack，每个kstack下面有一个没有被映射的guard
+page，guard page的作用是防止kstack溢出影响其他kstack。</li>
 </ul>
-<h2 id="3-3-Code-creating-an-address-space">3.3 Code: creating an address space</h2>
+<h2 id="code-creating-an-address-space">3.3 Code: creating an address
+space</h2>
 <p>大多数和管理页表相关的代码都存放在<code>kernel/vm.c</code>中。核心结构体是<code>pagetable_t</code>，<strong>实际是一个指向一块8字节内存的指针</strong>(见<code>kernel/riscv.h</code>最后一行)。</p>
 <p>重要的函数:</p>
 <ul>
-<li><code>walk</code>(<code>kernel/vm.c</code>): 模拟RISC-V三级分页硬件。给定虚拟地址和页表，返回最终页表的PTE。</li>
+<li><code>walk</code>(<code>kernel/vm.c</code>):
+模拟RISC-V三级分页硬件。给定虚拟地址和页表，返回最终页表的PTE。</li>
 <li><code>mappages</code>：给定一个页表，虚拟地址和物理地址，通过在页表中写入PTE来建立映射。</li>
 <li><code>kvminit</code>：调用<code>kvmmap</code>来创建内核页表的映射。</li>
-<li><code>kvminithart</code>： 把kernel页表的物理地址写入satp寄存器。从<code>w_satp</code>这行代码后，页表开始启用，地址都变成虚拟地址。</li>
+<li><code>kvminithart</code>：
+把kernel页表的物理地址写入satp寄存器。从<code>w_satp</code>这行代码后，页表开始启用，地址都变成虚拟地址。</li>
 </ul>
-<p>每个RISC-V CPU会把PTE缓存到*Translation Look-aside Buffer (TLB)*中，当xv6更改了页表时，必须通知CPU来取消掉当前的TLB，取消当前TLB的函数是sfence.vma()，在kvminithart中被调用</p>
-<h2 id="3-4-Physical-memory-allocation-2">3.4 Physical memory allocation</h2>
+<p>每个RISC-V CPU会把PTE缓存到<em>Translation Look-aside Buffer
+(TLB)</em>中，当xv6更改了页表时，必须通知CPU来取消掉当前的TLB，取消当前TLB的函数是sfence.vma()，在kvminithart中被调用</p>
+<h2 id="physical-memory-allocation">3.4 Physical memory allocation</h2>
 <p>xv6在运行时分配或释放页表、用户内存、内核栈、管道缓冲区等各种物理内存的不同用途。xv6中这些内存都分配在<strong>内核数据</strong>的末位和PHYSTOP之间，每次分配4096字节，即4KB空间。</p>
 <p>分配和释放是通过对空闲页链表进行追踪完成的(<code>kernel/kalloc.c:struct kmem</code>)，分配空间就是将一个页从链表中移除，释放空间就是将一页增加到链表中。</p>
 <p>kernel的物理空间的分配函数在<code>kernel/kalloc.c</code>中，每个页在链表中的元素是<code>struct run</code>，每个run存储在空闲页本身中。这个空闲页的链表<code>freelist</code>由<code>spin lock</code>保护，包装在<code>struct kmem</code>中。</p>
@@ -359,16 +394,24 @@
 <li><code>kinit</code>：初始化所有空闲内存列表，在内核刚启动的时候调用。从<code>kernel end</code>到<code>PHYSTOP</code>之间的所有内存都按页清空，并存放在<code>freelist</code>中。</li>
 <li><code>freerange</code>：将range中的每一个页面都调用一次<code>free()</code>来将其插入到<code>freelist</code>的末尾。</li>
 </ul>
-<h2 id="3-5-User-space-address">3.5 User space address</h2>
-<p>每个进程都有一个单独的页表，当内核在进程之间切换的时候，他也会修改对于的页表。<br>
-<img src="/img/6.S081/Lab-03/figure3-4.png" srcset="/img/loading.gif" lazyload alt="Figure 3.4: A process’s user address space, with its initial stack."></p>
+<h2 id="user-space-address">3.5 User space address</h2>
+<p>每个进程都有一个单独的页表，当内核在进程之间切换的时候，他也会修改对于的页表。
+<img src="/img/6.S081/Lab-03/figure3-4.png" srcset="/img/loading.gif" lazyload
+alt="Figure 3.4: A process’s user address space, with its initial stack." /></p>
 <p>当进程向内核索要更多用户内存的时候，xv6会调用<code>kalloc</code>来分配物理内存。然后会向进程页表中添加新的PTE项，并附带<code>PTE_W</code>、<code>PTE_R</code>、<code>PTR_U</code>和<code>PTE_V</code>标志。</p>
-<p>从这里可以看到页表的几个使用好处：1. 不同进程的页表将同样的用户地址映射到不同的内存中，从而每个进程都拥有独自的内存。2. 每个进程的虚拟地址都一段从0开始的连续地址，但实际的物理地址并不用为连续的。3. 内核将所有进程运行状态都存储在虚拟空间顶部的<code>trampoline</code>页面中(没有设置<code>PTE_U</code>权限)，防止用户进程修改其他数据。</p>
-<h2 id="3-6-Code-exec">3.6 Code : exec</h2>
+<p>从这里可以看到页表的几个使用好处：1.
+不同进程的页表将同样的用户地址映射到不同的内存中，从而每个进程都拥有独自的内存。2.
+每个进程的虚拟地址都一段从0开始的连续地址，但实际的物理地址并不用为连续的。3.
+内核将所有进程运行状态都存储在虚拟空间顶部的<code>trampoline</code>页面中(没有设置<code>PTE_U</code>权限)，防止用户进程修改其他数据。</p>
+<h2 id="code-exec">3.6 Code : exec</h2>
 <p>exec是一个<code>system call</code>，为以ELF格式定义的文件系统中的可执行文件创建用户空间。</p>
-<p>exec先检查头文件中是否有<code>ELF_MAGIC</code>来判断这个文件是否是一个ELF格式定义的二进制文件，用<code>proc_pagetable</code>来为当前进程创建一个还没有映射的页表，然后用<code>uvmalloc</code>来为每个ELF segment分配物理空间并在页表中建立映射，然后用<code>loadseg</code>来把ELF segment加载到物理空间当中。注意<code>uvmalloc</code>分配的物理内存空间可以比文件本身要大。</p>
-<p>接下来exec分配user stack，它仅仅分配一页给stack，通过<code>copyout</code>将传入参数的string放在stack的顶端，然后在ustack的下方分配一个<code>guard page</code></p>
-<p>如果exec检测到错误，将跳转到bad标签，释放新创建的pagetable并返回-1。exec必须确定新的执行能够成功才会释放进程旧的页表(proc_freepagetable(oldpagetable, oldsz))，否则如果system call不成功，就无法向旧的页表返回-1</p>
+<p>exec先检查头文件中是否有<code>ELF_MAGIC</code>来判断这个文件是否是一个ELF格式定义的二进制文件，用<code>proc_pagetable</code>来为当前进程创建一个还没有映射的页表，然后用<code>uvmalloc</code>来为每个ELF
+segment分配物理空间并在页表中建立映射，然后用<code>loadseg</code>来把ELF
+segment加载到物理空间当中。注意<code>uvmalloc</code>分配的物理内存空间可以比文件本身要大。</p>
+<p>接下来exec分配user
+stack，它仅仅分配一页给stack，通过<code>copyout</code>将传入参数的string放在stack的顶端，然后在ustack的下方分配一个<code>guard page</code></p>
+<p>如果exec检测到错误，将跳转到bad标签，释放新创建的pagetable并返回-1。exec必须确定新的执行能够成功才会释放进程旧的页表(proc_freepagetable(oldpagetable,
+oldsz))，否则如果system call不成功，就无法向旧的页表返回-1</p>
 
                 
               </div>
