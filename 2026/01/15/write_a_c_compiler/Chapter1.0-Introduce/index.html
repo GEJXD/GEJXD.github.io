@@ -29,7 +29,7 @@
 <meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  老生常谈，CPU 只能识别 ISA 规定的机器码，不能识别高级语言。所以有了编译器：将高级语言翻译为机器码(特定的二进制序列)。然而，这套工作是通过一系列编译套件(或语言工具链, Language Toolchins)来实现的。 一般来说，将高级语言翻译为机器码需要经过这几个步骤">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-01-14T19:07:25.000Z">
-<meta property="article:modified_time" content="2026-01-17T08:41:59.010Z">
+<meta property="article:modified_time" content="2026-01-17T08:48:45.096Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
@@ -244,7 +244,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.1k 字
+          2.2k 字
         
       </span>
     
@@ -255,7 +255,7 @@
         
         
         
-          18 分钟
+          19 分钟
         
       </span>
     
@@ -428,6 +428,7 @@ Driver。为了方便后续的单元测试和调试，我们的 Compiler Driver
 3. 调用 <code>gcc ASSEMBLY_FILE -o OUTPUT_FILE</code>
 生成最终可执行文件。 4. 可选但推荐: 支持 <code>--debug</code>
 选项，保留生成的预处理文件、汇编文件。</p>
+<p>最终的 Driver 应该这样工作： <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 用户输入</span><br>./main.exe hello.c<br><br><span class="hljs-comment"># 驱动内部执行</span><br>1. gcc -E -P hello.c -o hello.i<br>2. ./compiler hello.i -o hello.s  <span class="hljs-comment"># 可选 --lex --parse --codegen</span><br>3. gcc hello.s -o hello<br>4. <span class="hljs-built_in">rm</span> hello.i hello.s<br></code></pre></td></tr></table></figure></p>
 <p>首先定义 <code>setting</code> 模块维护 <strong>目标平台</strong> 和
 <strong>编译选项</strong>。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> stage = <span class="hljs-type">Lex</span> | <span class="hljs-type">Parse</span> | <span class="hljs-type">Codegen</span> | <span class="hljs-type">Assembly</span> | <span class="hljs-type">Executable</span><br><span class="hljs-keyword">type</span> target = <span class="hljs-type">OS_X</span> | <span class="hljs-type">Linux</span><br><br><span class="hljs-keyword">let</span> platform = <span class="hljs-built_in">ref</span> <span class="hljs-type">Linux</span> <span class="hljs-comment">(* default to Linux *)</span><br></code></pre></td></tr></table></figure></p>
 <p>对于编译 <code>--lex</code> 等参数的实现，可以采用十分不优雅的
@@ -528,6 +529,12 @@ Driver。为了方便后续的单元测试和调试，我们的 Compiler Driver
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2026/01/16/write_a_c_compiler/Chapter1.1-Lexer/" title="从零开始编写 C 编译器 Chapter 1.1 | Lexer">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 1.1 | Lexer</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">

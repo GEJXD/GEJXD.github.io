@@ -1,0 +1,839 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="江欣婷">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Lexer Lexer 读取源代码文件，将其转换为 有序的 token 列表。由于 C 语言语义不依赖缩进，所以我们不用将 空白字符(whitespace) 视为 token，但在 python 中需要维护。 对于上篇中提到的最简 C 程序，它的 token 列表应该长这样：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零开始编写 C 编译器 Chapter 1.1 | Lexer">
+<meta property="og:url" content="https://acmicpc.top/2026/01/16/write_a_c_compiler/Chapter1.1-Lexer/index.html">
+<meta property="og:site_name" content="江欣婷&#39;s博客">
+<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Lexer Lexer 读取源代码文件，将其转换为 有序的 token 列表。由于 C 语言语义不依赖缩进，所以我们不用将 空白字符(whitespace) 视为 token，但在 python 中需要维护。 对于上篇中提到的最简 C 程序，它的 token 列表应该长这样：">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-16T11:07:25.000Z">
+<meta property="article:modified_time" content="2026-01-17T10:45:41.054Z">
+<meta property="article:author" content="江欣婷">
+<meta property="article:tag" content="compiler">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>从零开始编写 C 编译器 Chapter 1.1 | Lexer - 江欣婷&#39;s博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="江欣婷's博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>江欣婷&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 1.1 | Lexer"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        江欣婷
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-16 19:07" pubdate>
+          2026年1月16日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 1.1 | Lexer</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a
+C Compiler</em></p>
+</blockquote>
+<h2 id="lexer">Lexer</h2>
+<p>Lexer 读取源代码文件，将其转换为 <strong>有序的 token
+列表</strong>。由于 C 语言语义不依赖缩进，所以我们不用将
+<em>空白字符(whitespace)</em> 视为 token，但在 <code>python</code>
+中需要维护。</p>
+<p>对于上篇中提到的最简 C 程序，它的 token 列表应该长这样：</p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>int</td>
+<td>A Keyword</td>
+</tr>
+<tr>
+<td>main</td>
+<td>An identifier, whose value is "main"</td>
+</tr>
+<tr>
+<td>(</td>
+<td>An open parenthesis</td>
+</tr>
+<tr>
+<td>void</td>
+<td>A keyword</td>
+</tr>
+<tr>
+<td>)</td>
+<td>A close parenthesis</td>
+</tr>
+<tr>
+<td>{</td>
+<td>An open brace</td>
+</tr>
+<tr>
+<td>return</td>
+<td>A keyword</td>
+</tr>
+<tr>
+<td>2</td>
+<td>A constant, whose value is “2”</td>
+</tr>
+<tr>
+<td>;</td>
+<td>A semicolon</td>
+</tr>
+<tr>
+<td>}</td>
+<td>A close brace</td>
+</tr>
+</tbody>
+</table>
+<p>术语 <em>identifier</em> 表示由 ASCII
+字母或下划线开头，后接任意数量字母、下划线和数字组成的字符串。<em>constant</em>
+表示由由一个或多个数字组成的字符串。<em>identifier</em> 和
+<em>constant</em>
+都需额外维护一个值，但其他类型不用，只用维护一个单独的符号。对于现在处理的程序，<em>constant</em>
+中只可能出现一个 <code>int</code> 类型的常数。</p>
+<p>上述 token 可以通过正则表达式来进行匹配，本文采用 <em>PCRE</em>
+语法，所有 token 类型对应的 regex 见下表: | Token 类型 | regex str |
+|------------|------------------| | Identifier |
+<code>[a-zA-Z_]\w*\b</code> | | Constant | <code>[0-9]+\b</code> | | Int
+| <code>int\b</code> | | Void | <code>void\b</code> | | ( |
+<code>\(</code> | | ) | <code>\)</code> | | { | <code>\&#123;</code> | | } |
+<code>\&#125;</code> | | ; | <code>;</code> |</p>
+<p>所有 <em>identifier</em>、<em>constant</em>、<em>keyword</em>
+必须以单词边界(结束；即 <code>123;</code> 是合法常量，以非字符
+<code>\w</code>结束。但 <code>123bar</code>
+非法：<code>123</code>和<code>bar</code>没有通过单词边界分割，应当视为一个
+token，但<em>identifier</em> 不能以数字开头。</p>
+<p>上述就是所有有关 <em>最简 C 程序</em> 的 token
+的知识点，接下来我们开始实现对于 Lexer。伪代码如下： <figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs stata"><span class="hljs-keyword">while</span> <span class="hljs-keyword">input</span> isn&#x27;t empty:<br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">input</span> starts with whitespace:<br>        <span class="hljs-keyword">trim</span> whitespace from start of <span class="hljs-keyword">input</span><br>    <span class="hljs-keyword">else</span>:<br>        find longest match at start of <span class="hljs-keyword">input</span> <span class="hljs-keyword">for</span> any regex <span class="hljs-keyword">in</span> <span class="hljs-keyword">Table</span> 1-1<br>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">no</span> match is found <br>            raise <span class="hljs-keyword">an</span> <span class="hljs-keyword">error</span><br>        <span class="hljs-keyword">else</span> <br>            convert matching substring into a <span class="hljs-keyword">token</span><br>            remove matching substring from start of <span class="hljs-keyword">input</span><br></code></pre></td></tr></table></figure></p>
+<p>大概流程就是删除开头的空格，在所有的正则模式中欧哪个，找到最长匹配开头的规则。如果没找到则报错，如果找到了则转换为
+Token.t，并插入列表，删除匹配的字符串进行下一次匹配。</p>
+<p>首先我们定义 token type，一个枚举体完事： <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> t = <br>  <span class="hljs-comment">(* tokens with contents *)</span><br>  | <span class="hljs-type">Identifier</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">string</span><br>  | <span class="hljs-type">Constant</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">int</span><br>  <span class="hljs-comment">(* Keywords *)</span><br>  | <span class="hljs-type">KWInt</span><br>  | <span class="hljs-type">KWReturn</span><br>  | <span class="hljs-type">KWVoid</span><br>  <span class="hljs-comment">(* punctuation *)</span><br>  | <span class="hljs-type">OpenParen</span><br>  | <span class="hljs-type">CloseParen</span><br>  | <span class="hljs-type">OpenBrace</span><br>  | <span class="hljs-type">CloseBrace</span><br>  | <span class="hljs-type">Semicolon</span><br></code></pre></td></tr></table></figure></p>
+<p>之后定义匹配模式，这里使用一个 List 来维护，方便后续匹配的之后直接
+<code>List.iiter</code> 即可。由于每次都只在字符串开头进行匹配，添加
+<code>ANCHORED</code> 来进行限制。由于 <code>ocaml</code>
+没有内置的正则匹配引擎，我们使用 <code>ocaml-re</code> 库来进行匹配。
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> match_rule = &#123;<br>  re : <span class="hljs-type">Re</span>.re; <span class="hljs-comment">(* the regex string to match a token *)</span><br>  converter : <span class="hljs-built_in">string</span> -&gt; <span class="hljs-type">Tokens</span>.t; <br>  <span class="hljs-comment">(* a handler which convert matched string to token *)</span><br>&#125;<br><br><span class="hljs-keyword">let</span> generate_rule regex_str converter = <br>  &#123;re = <span class="hljs-type">Re</span>.<span class="hljs-type">Pcre</span>.regexp ~flags:[ <span class="hljs-type">`ANCHORED</span> ] regex_str; converter&#125;<br><br><span class="hljs-keyword">let</span> match_rules = <br>  [<br>    generate_rule &#123;_|[<span class="hljs-type">A</span>-<span class="hljs-type">Za</span>-z_][<span class="hljs-type">A</span>-<span class="hljs-type">Za</span>-z0-<span class="hljs-number">9_</span>]*\b|_&#125;  convert_identifier;<br>    generate_rule &#123;_|[<span class="hljs-number">0</span>-<span class="hljs-number">9</span>]+\b|_&#125;                  convert_constant;<br>    generate_rule &#123;_|\(|_&#125;                        (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">OpenParen</span>);<br>    generate_rule &#123;_|\)|_&#125;                        (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">CloseParen</span>);<br>    generate_rule &#123;_|\&#123;|_&#125;                        (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">OpenBrace</span>);<br>    generate_rule &#123;_|\&#125;|_&#125;                        (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">CloseBrace</span>);<br>    generate_rule <span class="hljs-string">&quot;;&quot;</span>                             (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">Semicolon</span>);<br>  ]<br><br></code></pre></td></tr></table></figure></p>
+<p>对于每种模式，单独使用一个函数来进行 ** string -&gt; Token.t**
+的转换。由于函数式编程中，函数可以作为参数传递和返回，可以很简单的实现这一功能。在其他语言中可能需要一个
+<code>switch</code> 语句或者 <code>if else</code> 塔来维护。
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-comment">(* convert string to Tokens.t *)</span><br><span class="hljs-comment">(* tips 1: treat keywords like special identifiers *)</span><br><span class="hljs-keyword">let</span> convert_identifier = <span class="hljs-keyword">function</span><br>  | <span class="hljs-string">&quot;int&quot;</span>     -&gt;   <span class="hljs-type">T</span>.<span class="hljs-type">KWInt</span><br>  | <span class="hljs-string">&quot;return&quot;</span>  -&gt;   <span class="hljs-type">T</span>.<span class="hljs-type">KWReturn</span><br>  | <span class="hljs-string">&quot;void&quot;</span>    -&gt;   <span class="hljs-type">T</span>.<span class="hljs-type">KWVoid</span><br>  | other     -&gt;   <span class="hljs-type">T</span>.<span class="hljs-type">Identifier</span> other<br><br><span class="hljs-comment">(* convert string to int *)</span><br><span class="hljs-keyword">let</span> convert_constant str = <br>  <span class="hljs-keyword">try</span> <span class="hljs-type">T</span>.<span class="hljs-type">Constant</span> (int_of_string str)<br>  <span class="hljs-keyword">with</span> <span class="hljs-type">Failure</span> _ -&gt; raise (<span class="hljs-type">LexError</span> (<span class="hljs-string">&quot;Invalid constant: &quot;</span> ^ str))<br><br><span class="hljs-comment">(* convert literal characters like &quot;(&quot; or &quot;;&quot; to Tokens.t *)</span><br><span class="hljs-keyword">let</span> convert_literal tok_type _ = tok_type<br></code></pre></td></tr></table></figure></p>
+<p>同时我们还需要维护一个当前字符串匹配成功的模式列表，单独使用一个结构体来存储<em>成功匹配的规则</em>和
+<em>成功匹配的子串</em> ： <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> matched_string = &#123;<br>  matched_rule : match_rule; <span class="hljs-comment">(* which rule it matched *)</span><br>  matched_substring : <span class="hljs-built_in">string</span>; <span class="hljs-comment">(* substring matched with regex token_match.re *)</span><br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>进行匹配的函数也很容易能写出来。<code>Re.exec_opt regex_str str</code>
+将主串<code>str</code> 根据 模式串<code>regex_str</code>
+进行匹配，匹配成功返回一个列表
+<code>optione group</code>，<code>group</code>
+中存放所有匹配成功的子串。例如
+<code>Re.exec_opt "ABC" "ABC;ABC;ABC"</code> 返回
+<code>["ABC", "ABC", "ABC"]</code>。由于 Lexer 中只需要第一个匹配成功的
+token，所以通过 <code>get</code>
+来获取第一个匹配成功的子串。匹配失败则产生一个 <code>None</code>。
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> find_match s rule = <br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Re</span>.exec_opt rule.re s <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">Some</span> group -&gt;<br>      <span class="hljs-keyword">let</span> substr = <span class="hljs-type">Re</span>.<span class="hljs-type">Group</span>.get group <span class="hljs-number">0</span> <span class="hljs-keyword">in</span><br>      <span class="hljs-type">Some</span> &#123; matched_substring = substr; matched_rule = rule&#125;<br>  | <span class="hljs-type">None</span> -&gt; <span class="hljs-type">None</span><br></code></pre></td></tr></table></figure></p>
+<p>删除字符串前面的空格同样也可以使用正则表达式来完成。<code>\s</code>
+表示不可见字符。<code>Re.exec_opt</code> 返回的 <code>group</code>
+可以通过 <code>offset</code>
+获得成功匹配的子串对于串首的偏移量，丢掉这部分即可。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> count_leading_ws s = <br>  <span class="hljs-keyword">let</span> ws_re = <span class="hljs-type">Re</span>.<span class="hljs-type">Pcre</span>.regexp ~flags:[ <span class="hljs-type">`ANCHORED</span> ] &#123;|\s+|&#125; <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Re</span>.exec_opt ws_re s <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">Some</span> group -&gt; <br>      <span class="hljs-keyword">let</span> _, end_pos = <span class="hljs-type">Re</span>.<span class="hljs-type">Group</span>.offset group <span class="hljs-number">0</span> <span class="hljs-keyword">in</span><br>      <span class="hljs-type">Some</span> end_pos<br>  | <span class="hljs-type">None</span> -&gt; <span class="hljs-type">None</span><br></code></pre></td></tr></table></figure></p>
+<p>之后就是主 Lexer 的逻辑了, 基本和伪代码的流程差不多。
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> <span class="hljs-keyword">rec</span> lexer input = <br>  <span class="hljs-keyword">if</span> input = <span class="hljs-string">&quot;&quot;</span> <span class="hljs-keyword">then</span> <span class="hljs-literal">[]</span><br>  <span class="hljs-keyword">else</span><br>    <span class="hljs-keyword">match</span> count_leading_ws input <span class="hljs-keyword">with</span><br>    <span class="hljs-comment">(* have whitespace front of input *)</span><br>    | <span class="hljs-type">Some</span> end_pos -&gt; lexer (<span class="hljs-type">StringUtil</span>.drop end_pos input)<br>    | <span class="hljs-type">None</span> -&gt;<br>    <span class="hljs-comment">(* match_result contains all matched_strings that matched succesfully *)</span><br>      <span class="hljs-keyword">let</span> match_result = <span class="hljs-type">List</span>.filter_map (find_match input) match_rules <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">match</span> match_result <span class="hljs-keyword">with</span><br>      <span class="hljs-comment">(* cannot match any pattern *)</span><br>      | <span class="hljs-literal">[]</span> -&gt; raise (<span class="hljs-type">LexError</span> <br>        (<span class="hljs-string">&quot;Unrecognized token at: &quot;</span> ^ <span class="hljs-type">String</span>.sub input <span class="hljs-number">0</span> (min <span class="hljs-number">10</span> (<span class="hljs-type">String</span>.length input))))<br>      | _ -&gt;<br>          <span class="hljs-keyword">let</span> longest = <br>            <span class="hljs-type">List</span>.fold_left<br>              (<span class="hljs-keyword">fun</span> acc m -&gt; <span class="hljs-keyword">if</span> <span class="hljs-type">String</span>.length m.matched_substring &gt; <span class="hljs-type">String</span>.length acc.matched_substring <span class="hljs-keyword">then</span> m <span class="hljs-keyword">else</span> acc)<br>              (<span class="hljs-type">List</span>.hd match_result)<br>              (<span class="hljs-type">List</span>.tl match_result)<br>          <span class="hljs-keyword">in</span><br>          <span class="hljs-keyword">let</span> token = longest.matched_rule.converter longest.matched_substring <span class="hljs-keyword">in</span><br>          <span class="hljs-keyword">let</span> remaining = <span class="hljs-type">StringUtil</span>.drop (<span class="hljs-type">String</span>.length longest.matched_substring)<br>            input <span class="hljs-keyword">in</span><br>          token :: (lexer remaining)<br></code></pre></td></tr></table></figure></p>
+<p>至此一个最简单的 Lexer 就写完了，后续会逐渐增加 token
+的类型，最终支持整个 C 语言。在 <code>github</code>
+仓库中我额外编写了一个 <code>print_matches</code> 来打印整个
+<code>token list</code>。如果不出意外的话，对于本章的程序，应该输出如下东西：
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs bash">./main.exe return_2.c --lex<br>Int <br>Identifier <br>Characters <br>Void <br>Characters <br>Characters <br>Return <br>Constant <br>Characters <br>Characters<br></code></pre></td></tr></table></figure></p>
+<p>和 <code>return_2.c</code> 比较一下，可以看到正确生成了对应的 token
+list. <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">2</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/compiler/" class="category-chain-item">compiler</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/compiler/" class="print-no-link">#compiler</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从零开始编写 C 编译器 Chapter 1.1 | Lexer</div>
+      <div>https://acmicpc.top/2026/01/16/write_a_c_compiler/Chapter1.1-Lexer/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>江欣婷</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月16日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/15/write_a_c_compiler/Chapter1.0-Introduce/" title="从零开始编写 C 编译器 Chapter 1.0 | Introduction">
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 1.0 | Introduction</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
