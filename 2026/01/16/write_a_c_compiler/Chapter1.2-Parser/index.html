@@ -29,7 +29,7 @@
 <meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Parser 源代码在经过 Lexer 之后，提出了源码中无用的部分，形成了一个 token.t 列表。但是线性的 token 流失去了源码的结构性，我们需要更利于机器分析的结构。Parser 需要遍历 token 流，判断某一部分 token 是否能组成正确的语法，并把他们抽象">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-01-16T15:07:25.000Z">
-<meta property="article:modified_time" content="2026-01-17T16:33:26.219Z">
+<meta property="article:modified_time" content="2026-01-17T16:44:29.236Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
@@ -322,9 +322,16 @@ Syntax Tree, AST)。</p>
 “抽象”语法树。</p>
 <h2 id="ast-的一个例子">AST 的一个例子</h2>
 <p>考虑如下的 <code>if-statement</code> 语句。 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">if</span> (a &lt; b) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">2</span> + <span class="hljs-number">2</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
-<p>对应的 AST 中，根节点表示整个 <code>if</code> 语句，并有两棵子树： 1.
-Left subtree: The condition <code>a &lt; b</code> 2. Right subtree: The
-statement body <code>return 2 + 2</code></p>
+<p>对应的 AST 中，根节点表示整个 <code>if</code>
+语句，并有两棵子树：</p>
+<ul>
+<li><ol type="1">
+<li>Left subtree: The condition <code>a &lt; b</code></li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>Right subtree: The statement body <code>return 2 + 2</code></li>
+</ol></li>
+</ul>
 <p>每一棵子树中，还进一步定义了更多子树:
 表达式、二元运算符、左操作数、右操作数等。上述 <code>if</code>
 语句的完整 AST 见下图：</p>
@@ -337,28 +344,31 @@ src="/img/write_a_c_compiler/Chapter_1/2026-01-16_17_06_46.png" srcset="/img/loa
 <p><img
 src="/img/write_a_c_compiler/Chapter_1/2026-01-17_23_13_03.png" srcset="/img/loading.gif" lazyload /></p>
 <h2 id="ast-的定义">AST 的定义</h2>
-<p>我们 <em>Zephyr Abstract Syntax Description Language(ASDL)</em>
+<p>我们使用 <em>Zephyr Abstract Syntax Description Language(ASDL)</em>
 来描述一棵 AST。对于 <code>return_2.c</code> 的AST，我们可以定义为如下：
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definition)<br>function_definition = Function(identifier name, statement body)<br>statement = Return(exp)<br>exp = Constant(int)<br></code></pre></td></tr></table></figure> 每一行都定义了一个 AST 的结点。根节点是 <em>Program</em>
-结点，每一个子节点为一个 <em>function_definition</em>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definitions)<br>function_definition = Function(identifier name, statement body)<br>statement = Return(exp)<br>exp = Constant(int)<br></code></pre></td></tr></table></figure></p>
+<p>每一行都定义了一个 AST 的结点。根节点是 <em>Program</em>
+结点，其每个子节点均为一个 <em>function_definition</em>
 结点。但目前我们只有 <code>main</code> 函数，所以只有一个子节点。一个
 <em>function_definition</em> 结点有两个子节点: 用于表示函数名的
-<em>ifentifier</em>结点 和 表明语句的 <em>statement</em>
-结点。之后还可能新增参数字节点(<em>argument node</em>)。目前我们只有
+<em>identifier</em> 结点 和 表明语句的 <em>statement</em>
+结点。之后还可能新增参数节点(<em>argument node</em>)。目前我们只有
 <code>return</code> 语句，所以只有一种 <em>statement</em>
 结点，且它的唯一子节点为一个 <em>exp</em> 结点。同样， <em>exp</em>
 结点只有一种，它只代表一个 <code>int</code> 类型的常数。</p>
 <p>我们可以通过 <code>|</code> 来为一种结点添加新的
-<em>constructor</em>。例如： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">statement = Return(exp) | If(exp condition, statement then, statement? else)<br></code></pre></td></tr></table></figure></p>
-<p>此时 <em>statement</em> 结点包括两种类型，新的 <code>If</code>
-类型结点有3个子节点，分别为表明判断条件的 <em>exp</em>
+<em>constructor</em>。例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">statement = Return(exp) | If(exp condition, statement then, statement? else)<br></code></pre></td></tr></table></figure>
+<p>此时 <em>statement</em> 的值可以为<code>Return</code> 或
+<code>If</code>。若为 <code>If</code>
+结点时，有3个子节点，分别为表明判断条件的 <em>exp</em>
 结点，条件满足时候的执行的 <em>statement</em> 结点，和不满足时执行的
 <em>statement</em> 结点。<code>statement?</code> 中的 <code>?</code>
 表明此子节点是可选的，因为不是所有的 <code>if</code> 语句都有
 <code>else</code> 分支。</p>
 <h2 id="形式文法-formal-grammar">形式文法 (Formal Grammar)</h2>
 <p>AST 只定义了每个结点所包含的信息，我们同时还需要一套从
-<strong>token</strong> 序列构建 <strong>AST Node</strong> 的规则。比如
+<strong>token</strong> 序列构建 <strong>AST</strong> 的规则。比如
 <code>return</code> 语句结束时必须跟着一个
 <code>;</code>，函数体必须包裹在 <code>&#123;&#125;</code>
 中等等。这套规则我们叫作 <strong>形式文法(Formal Grammar)</strong>
@@ -400,7 +410,7 @@ class="math inline">\(A\)</span> 构造一个解析器
 <em>program</em>
 包括了所有的<em>function_definition</em>，同时也理应包括了所有的
 <em>exp</em>，所以调用 <code>parse_program</code> 就能遍历完所有的
-tooken，并生成所有的 AST 结点。</p>
+token，并生成所有的 AST 结点。</p>
 <p>当一个 AST 结点可由多条产生式规则生成时(如 <code>return</code> 和
 <code>if</code> 都对应一条 <em>statement</em>)，可以根据首部的几个 token
 决定使用那条路径，或可以采用回溯的方法遍历所有的规则。</p>
@@ -414,8 +424,8 @@ tooken，并生成所有的 AST 结点。</p>
 AST，并检查是否还有剩余的 token 。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> <span class="hljs-keyword">parser</span> tokens = <br>  <span class="hljs-keyword">try</span> <br>    <span class="hljs-keyword">let</span> token_stream = <span class="hljs-type">Tok_stream</span>.of_list tokens <span class="hljs-keyword">in</span><br>    <span class="hljs-keyword">let</span> ast = <span class="hljs-type">Private</span>.parse_program token_stream<br>  <span class="hljs-keyword">with</span> <span class="hljs-type">Tok_stream</span>.<span class="hljs-type">End_of_stream</span><br>  -&gt; raise (<span class="hljs-type">ParserError</span> <span class="hljs-string">&quot;Unexpected end of file&quot;</span>)<br></code></pre></td></tr></table></figure></p>
 <h2 id="最后的碎碎念">最后的碎碎念</h2>
 <p>从这就可以看出 函数式编程
-对处理数据结构的优越性了。对于一棵树结构，我们不用维护繁琐的
-<code>lchile</code> 和 <code>rchild</code>
+对处理数据结构的优越性。对于一棵树结构，我们不用维护繁琐的
+<code>lchild</code> 和 <code>rchild</code>
 指针，也不用显示指明有多少儿子。</p>
 <p>在函数式语言中，实现一棵树型结构是通过 <strong>元组</strong>
 来实现的，例如对于二叉树，我们可以很简单的定义如下类型：
