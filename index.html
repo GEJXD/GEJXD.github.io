@@ -251,7 +251,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/01/17/write_a_c_compiler/Chapter1.3-Codegen/" target="_self">
         <div>
-          Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Assembly Generation Assembly Generate 阶段需要将 AST 转换为 x64 汇编代码。转换过程大致会按照程序执行顺序遍历 AST，为每个结点生成对应的汇编指令。由于为了兼容后续复杂的汇编生成， 我们不会直接将汇编指令输出到文件，而是先构建一个中
+          Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Assembly Generation Assembly Generate 阶段需要将 AST 转换为 x64 汇编代码。转换过程会按照程序执行顺序遍历 AST，并为每个结点生成对应的汇编指令。由于为了兼容后续生成IR， 我们不会直接将汇编指令输出到文件，而是先构建一个中间数据结
         </div>
       </a>
 
@@ -312,7 +312,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/01/16/write_a_c_compiler/Chapter1.2-Parser/" target="_self">
         <div>
-          Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Parser 源代码在经过 Lexer 之后，提出了源码中无用的部分，形成了一个 token.t 列表。但是线性的 token 流失去了源码的结构性，我们需要更利于机器分析的结构。Parser 需要遍历 token 流，判断某一部分 token 是否能组成正确的语法，并把他们抽象
+          Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Parser 源代码在经过 Lexer 之后，剔除了无用的部分(如换行、空格等)，形成了一个 token.t 列表。Parser 遍历 token 流，判断某一部分 token 是否能组成正确的语言结构，并把他们抽象为一个结点。将不同的结点分层，最终组成一棵抽象语法树(Abstr
         </div>
       </a>
 
