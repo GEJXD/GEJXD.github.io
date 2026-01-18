@@ -1,0 +1,862 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="江欣婷">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Assembly Generation Assembly Generate 阶段需要将 AST 转换为 x64 汇编代码。转换过程大致会按照程序执行顺序遍历 AST，为每个结点生成对应的汇编指令。由于为了兼容后续复杂的汇编生成， 我们不会直接将汇编指令输出到文件，而是先构建一个中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零开始编写 C 编译器 Chapter 1.3 | Codegen">
+<meta property="og:url" content="https://acmicpc.top/2026/01/17/write_a_c_compiler/Chapter1.3-Codegen/index.html">
+<meta property="og:site_name" content="江欣婷&#39;s博客">
+<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Assembly Generation Assembly Generate 阶段需要将 AST 转换为 x64 汇编代码。转换过程大致会按照程序执行顺序遍历 AST，为每个结点生成对应的汇编指令。由于为了兼容后续复杂的汇编生成， 我们不会直接将汇编指令输出到文件，而是先构建一个中">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-17T13:07:25.000Z">
+<meta property="article:modified_time" content="2026-01-18T14:04:26.880Z">
+<meta property="article:author" content="江欣婷">
+<meta property="article:tag" content="compiler">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>从零开始编写 C 编译器 Chapter 1.3 | Codegen - 江欣婷&#39;s博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="江欣婷's博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>江欣婷&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 1.3 | Codegen"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        江欣婷
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-17 21:07" pubdate>
+          2026年1月17日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          925 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          8 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 1.3 | Codegen</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a
+C Compiler</em></p>
+</blockquote>
+<h2 id="assembly-generation">Assembly Generation</h2>
+<p>Assembly Generate 阶段需要将 AST 转换为 <code>x64</code>
+汇编代码。转换过程大致会按照程序执行顺序遍历
+AST，为每个结点生成对应的汇编指令。由于为了兼容后续复杂的汇编生成，
+我们不会直接将汇编指令输出到文件，而是先构建一个中间数据结构 —— 汇编
+AST，以便兼容后续的 IR。</p>
+<p>对于汇编 AST，我们采用和 AST 相同的 ASDL 语言来进行定义。
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definition)<br>function_definition = Function(identifier name, instruction* instructions)<br>instruction = Mov(operand src, operand dst) | Ret<br>operand = Imm(int) | Register<br></code></pre></td></tr></table></figure></p>
+<p>每一行定义了一个结点，都表示特定的汇编结构。<code>program</code>
+表示了整个汇编程序，包含一个函数定义。 <code>function_definition</code>
+包括两个部分：一个函数名和一个指令列表。<code>instruction*</code> 中的
+<code>*</code> 表明该项可能包含多条
+<code>instruction</code>。<code>instruction</code>
+目前只支持两种指令：<code>Mov(src, dst)</code> 和
+<code>Ret</code>。<code>Mov</code> 指令用于将源操作数 <code>src</code>
+复制到目标操作数 <code>dst</code>。<code>Ret</code>
+无操作数，表示函数返回。<code>Operand</code>
+目前只支持两种操作：<code>Imm(int)</code> 整型常量和
+<code>Register</code> 寄存器(当然，目前只支持 <code>%rax</code>
+寄存器)。</p>
+<p>对比一下 AST 和 汇编 AST：</p>
+<table>
+<thead>
+<tr>
+<th>AST</th>
+<th>Assembly AST</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Program(func_def)</code></td>
+<td><code>Program(func_def)</code></td>
+</tr>
+<tr>
+<td><code>Function(name, body)</code></td>
+<td><code>Function(name, instructions)</code></td>
+</tr>
+<tr>
+<td><code>Return(exp)</code></td>
+<td>1. <code>Mov(src, dst)</code> 2. <code>Ret</code></td>
+</tr>
+<tr>
+<td><code>Constant(n)</code></td>
+<td><code>Imm(n)</code></td>
+</tr>
+</tbody>
+</table>
+<p>在 AST 中的一个结点可能会对应 <strong>多个</strong> 汇编 AST
+结点，且目前表达式只支持一个 <strong>整型常量</strong>。</p>
+<h2 id="implementation">Implementation</h2>
+<p>对于 Assembly AST 的定义，和 AST 十分相似，只需要注意
+<code>instruction</code> 即可。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> operand = <br>  | <span class="hljs-type">Imm</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">int</span><br>  | <span class="hljs-type">Register</span><br><br><span class="hljs-keyword">type</span> instruction = <br>  | <span class="hljs-type">Mov</span> <span class="hljs-keyword">of</span> operand * operand<br>  | <span class="hljs-type">Ret</span><br><br><span class="hljs-keyword">type</span> function_definition = <br>  | <span class="hljs-type">Function</span> <span class="hljs-keyword">of</span> &#123;name : <span class="hljs-built_in">string</span>; instructions : instruction <span class="hljs-built_in">list</span>&#125;<br><br><span class="hljs-keyword">type</span> t = <br>  | <span class="hljs-type">Program</span> <span class="hljs-keyword">of</span> function_definition<br></code></pre></td></tr></table></figure></p>
+<p>同样采用 <strong>递归下降式遍历</strong>，为每一个类型编写一个
+<code>convert</code> 函数。 <figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs coq"><span class="hljs-keyword">let</span> convert_exp (Ast.<span class="hljs-keyword">Constant</span> i) = Assembly.Imm i<br><br><span class="hljs-keyword">let</span> convert_statement (Ast.Return e) = <br>  <span class="hljs-keyword">let</span> value = convert_exp e <span class="hljs-built_in">in</span><br>  Assembly.[Mov (value, Register);  Ret]<br><br><span class="hljs-keyword">let</span> convert_function (Ast.<span class="hljs-keyword">Function</span> &#123;name; body&#125;) = <br>  <span class="hljs-keyword">let</span> inst_list = convert_statement body <span class="hljs-built_in">in</span><br>  Assembly.<span class="hljs-keyword">Function</span>&#123;name; instructions=inst_list&#125;<br><br><span class="hljs-keyword">let</span> codegen (Ast.<span class="hljs-keyword">Program</span> func_def) = <br>  Assembly.<span class="hljs-keyword">Program</span> (convert_function func_def)<br></code></pre></td></tr></table></figure></p>
+<p>将 AST 转换为汇编 AST ，目前来看纯是在
+<sub>脱裤子放屁</sub>。但在后续引入更复杂的语义结构时，直接将 AST 转换为
+Assembly Code 而不通过 <strong>中间表示(IR)</strong>
+，是几乎不可能的。</p>
+<h2 id="code-emission">Code Emission</h2>
+<p>汇编 AST 与最终的汇编大妈高度对应，因此 Code Emission
+阶段实现特别简单。只需要按照汇编 AST
+的结点逐一翻译即可。但是在生成汇编代码之前，我们需要处理平台相关的差异。</p>
+<p>在 <code>Mac OS</code>
+中，所有的全局函数名前需要加下划线<code>_</code>，例如 <code>main</code>
+应该为 <code>_main</code>。而在 <code>Linux</code> 平台中不用。</p>
+<p>此外，在 <code>Linux</code> 中可以在汇编文件末尾添加以下指令：
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs x86">.section .note.GNU-stack,&quot;&quot;,@progbits<br></code></pre></td></tr></table></figure> 告知链接器此程序不需要可执行栈(non-executable
+stack)，能防止一些攻击行为。</p>
+<p>接下来通过一张表即可表示完从汇编 AST 到 Assembly Code
+的对应关系。</p>
+<table>
+
+<thead>
+<tr>
+<th>Assembly top-level construct</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Program(func_def)</code></td>
+<td>当为 Linux 平台时，添加 <code>non-exectuable stack</code> 声明</td>
+</tr>
+<tr>
+<td><code>Function(name, instructions)</code></td>
+<td><code>.globl &lt;name&gt;</code> <br> <code>&lt;name&gt;:</code>
+<br> <code>&lt;instructions&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Assembly instruction</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Mov(src, dst)</code></td>
+<td><code>movl &lt;src&gt;, &lt;dst&gt;</code></td>
+</tr>
+<tr>
+<td><code>Ret</code></td>
+<td><code>ret</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Assembly operand</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Register</code></td>
+<td><code>%eax</code></td>
+</tr>
+<tr>
+<td><code>Imm(int)</code></td>
+<td><code>$&lt;int&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="implementation-1">Implementation</h2>
+<p>这部分没啥好说的，遍历到一个 AST
+NODE，将其转换为字符串输入文件即可。</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">open</span> <span class="hljs-type">Assembly</span><br><br><span class="hljs-keyword">let</span> show_operand = <span class="hljs-keyword">function</span><br>  | <span class="hljs-type">Register</span> -&gt; <span class="hljs-string">&quot;%eax&quot;</span><br>  | <span class="hljs-type">Imm</span> i -&gt; <span class="hljs-type">Printf</span>.sprintf <span class="hljs-string">&quot;$%d&quot;</span> i<br><br><span class="hljs-keyword">let</span> show_label name = <br>  <span class="hljs-keyword">match</span> !<span class="hljs-type">Settings</span>.platform <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">OS_X</span> -&gt; <span class="hljs-string">&quot;_&quot;</span> ^ name<br>  | <span class="hljs-type">Linux</span> -&gt; name<br><br><span class="hljs-keyword">let</span> emit_instruction chan = <span class="hljs-keyword">function</span><br>  | <span class="hljs-type">Mov</span> (src, dst) -&gt;<br>      <span class="hljs-type">Printf</span>.fprintf chan <span class="hljs-string">&quot;\tmovl %s, %s\n&quot;</span> <br>      (show_operand src)<br>      (show_operand dst)<br>  | <span class="hljs-type">Ret</span> -&gt; <span class="hljs-type">Printf</span>.fprintf chan <span class="hljs-string">&quot;\tret\n&quot;</span><br><br><span class="hljs-keyword">let</span> emit_function chan (<span class="hljs-type">Function</span> &#123;name; instructions&#125;) = <br>  <span class="hljs-keyword">let</span> label = show_label name <span class="hljs-keyword">in</span><br>  <span class="hljs-type">Printf</span>.fprintf chan &#123;|<br>  .globl %s<br>%s:<br>  |&#125; label label;<br>  <span class="hljs-type">List</span>.iter (emit_instruction chan) instructions<br><br><span class="hljs-keyword">let</span> emit_stack_note chan = <br>  <span class="hljs-keyword">match</span> !<span class="hljs-type">Settings</span>.platform <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">OS_X</span> -&gt; <span class="hljs-literal">()</span><br>  | <span class="hljs-type">Linux</span> -&gt; <span class="hljs-type">Printf</span>.fprintf chan <span class="hljs-string">&quot;\t.section .note.GNU-stack,\&quot;\&quot;,@progbits\n&quot;</span><br><br><span class="hljs-keyword">let</span> emit assembly_file (<span class="hljs-type">Program</span> function_def) = <br>  <span class="hljs-keyword">let</span> output_channel = open_out assembly_file <span class="hljs-keyword">in</span><br>  emit_function output_channel function_def;<br>  emit_stack_note output_channel;<br>  close_out output_channel<br></code></pre></td></tr></table></figure>
+<p>至此，我们的编译器能编译一个 <em>最简 C 程序了</em>，尽管它比 "Hello
+World" 还简单，但是这是从 <span class="math inline">\(0\)</span> 到
+<span class="math inline">\(1\)</span> 的第一步。</p>
+<p>可以结合 Compiler Driver 得到最终可执行文件，看看是否正确
+<code>return</code> 了 <span class="math inline">\(2\)</span>。
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">./main.exe return_2.c <br>./return_2<br><span class="hljs-built_in">echo</span> $?<br></code></pre></td></tr></table></figure></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/compiler/" class="category-chain-item">compiler</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/compiler/" class="print-no-link">#compiler</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从零开始编写 C 编译器 Chapter 1.3 | Codegen</div>
+      <div>https://acmicpc.top/2026/01/17/write_a_c_compiler/Chapter1.3-Codegen/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>江欣婷</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月17日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/16/write_a_c_compiler/Chapter1.2-Parser/" title="从零开始编写 C 编译器 Chapter 1.2 | Parser">
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 1.2 | Parser</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
