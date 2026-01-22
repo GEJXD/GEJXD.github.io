@@ -21,15 +21,15 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Lexer 这部分没新增什么东西，只需要 \(3\) 个 token 类型即可。    字符序列 运算符名称 语义说明     ~ Bitwise complement 按位取反   - Negation 算数负号   -- Decrement 自减运算符    注意到我们新增了">
+    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  我们成功生成了一元运算符的 AST，但将 AST 转换成 Assembly AST 却明显不如上一章简单。AST 中的 exp 结点拥有递归结构，而 Assembly AST 中的 operand 和 instruction 结点无法直接表达这种结构。我们需要将嵌套的表达式，通过">
 <meta property="og:type" content="article">
-<meta property="og:title" content="从零开始编写 C 编译器 Chapter 2.1 | Front End">
-<meta property="og:url" content="https://acmicpc.top/2026/01/22/write_a_c_compiler/Chapter2.1-Frontend/index.html">
+<meta property="og:title" content="从零开始编写 C 编译器 Chapter 2.2 | Intermediate Representation">
+<meta property="og:url" content="https://acmicpc.top/2026/01/22/write_a_c_compiler/Chapter2.2-IR/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Lexer 这部分没新增什么东西，只需要 \(3\) 个 token 类型即可。    字符序列 运算符名称 语义说明     ~ Bitwise complement 按位取反   - Negation 算数负号   -- Decrement 自减运算符    注意到我们新增了">
+<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  我们成功生成了一元运算符的 AST，但将 AST 转换成 Assembly AST 却明显不如上一章简单。AST 中的 exp 结点拥有递归结构，而 Assembly AST 中的 operand 和 instruction 结点无法直接表达这种结构。我们需要将嵌套的表达式，通过">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-01-22T09:07:25.000Z">
-<meta property="article:modified_time" content="2026-01-22T09:50:39.031Z">
+<meta property="article:published_time" content="2026-01-22T13:10:31.000Z">
+<meta property="article:modified_time" content="2026-01-22T13:48:41.928Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
@@ -38,7 +38,7 @@
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>从零开始编写 C 编译器 Chapter 2.1 | Front End - 江欣婷&#39;s博客</title>
+  <title>从零开始编写 C 编译器 Chapter 2.2 | Intermediate Representation - 江欣婷&#39;s博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -216,7 +216,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 2.1 | Front End"></span>
+            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 2.2 | Intermediate Representation"></span>
           
         </div>
 
@@ -232,8 +232,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-01-22 17:07" pubdate>
-          2026年1月22日 下午
+        <time datetime="2026-01-22 21:10" pubdate>
+          2026年1月22日 晚上
         </time>
       </span>
     
@@ -244,7 +244,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          810 字
+          838 字
         
       </span>
     
@@ -301,7 +301,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 2.1 | Front End</h1>
+            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 2.2 | Intermediate Representation</h1>
             
             
               <div class="markdown-body">
@@ -310,75 +310,46 @@
 <p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a
 C Compiler</em></p>
 </blockquote>
-<h2 id="lexer">Lexer</h2>
-<p>这部分没新增什么东西，只需要 <span class="math inline">\(3\)</span>
-个 token 类型即可。</p>
-<table>
-<thead>
-<tr>
-<th>字符序列</th>
-<th>运算符名称</th>
-<th>语义说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>~</code></td>
-<td>Bitwise complement</td>
-<td>按位取反</td>
-</tr>
-<tr>
-<td><code>-</code></td>
-<td>Negation</td>
-<td>算数负号</td>
-</tr>
-<tr>
-<td><code>--</code></td>
-<td>Decrement</td>
-<td>自减运算符</td>
-</tr>
-</tbody>
-</table>
-<p>注意到我们新增了 <code>--</code>
-运算符的解析。这是因为目前编译器只支持常量，而 <code>--2</code>
-这样的表达式是非法的，我们应在解析阶段报错。如果我们不解析
-<code>--</code>，编译器会将 <code>--2</code> 识别为 <code>-(-2)</code>
-造成语义上的错误。所以在 Lexer 阶段我们会解析 <code>--</code>
-运算符，但在后续阶段，我们会忽略它。</p>
-<p>对应的正则表达式和上一章中的标点符号 <code>;</code>, <code>(</code>
-一致，这里不做赘述。</p>
-<h2 id="implementation">Implementation</h2>
-<p><code>lib/token.ml</code>: <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> t =<br>  <span class="hljs-comment">(* tokens with contents *)</span><br>  | <span class="hljs-type">Identifier</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">string</span><br>  | <span class="hljs-type">Constant</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">int</span><br>  <span class="hljs-comment">(* Keywords *)</span><br>  | <span class="hljs-type">KWInt</span><br>  | <span class="hljs-type">KWReturn</span><br>  | <span class="hljs-type">KWVoid</span><br>  <span class="hljs-comment">(* punctuation *)</span><br>  | <span class="hljs-type">OpenParen</span><br>  | <span class="hljs-type">CloseParen</span><br>  | <span class="hljs-type">OpenBrace</span><br>  | <span class="hljs-type">CloseBrace</span><br>  | <span class="hljs-type">Semicolon</span><br>  | <span class="hljs-type">Tilde</span><br>  | <span class="hljs-type">Hyphen</span><br>  | <span class="hljs-type">DoubleHyphen</span><br></code></pre></td></tr></table></figure></p>
-<p><code>lib/lexer.ml</code>: <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> match_rules =<br>  [<br>    generate_rule &#123;_|[<span class="hljs-type">A</span>-<span class="hljs-type">Za</span>-z_][<span class="hljs-type">A</span>-<span class="hljs-type">Za</span>-z0-<span class="hljs-number">9_</span>]*\b|_&#125; convert_identifier;<br>    generate_rule &#123;_|[<span class="hljs-number">0</span>-<span class="hljs-number">9</span>]+\b|_&#125; convert_constant;<br>    generate_rule &#123;_|\(|_&#125; (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">OpenParen</span>);<br>    generate_rule &#123;_|\)|_&#125; (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">CloseParen</span>);<br>    generate_rule &#123;_|\&#123;|_&#125; (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">OpenBrace</span>);<br>    generate_rule &#123;_|\&#125;|_&#125; (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">CloseBrace</span>);<br>    generate_rule <span class="hljs-string">&quot;;&quot;</span> (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">Semicolon</span>);<br>    generate_rule <span class="hljs-string">&quot;-&quot;</span> (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">Hyphen</span>);<br>    generate_rule <span class="hljs-string">&quot;--&quot;</span> (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">DoubleHyphen</span>);<br>    generate_rule <span class="hljs-string">&quot;~&quot;</span> (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">Tilde</span>);<br>  ]<br></code></pre></td></tr></table></figure></p>
-<h2 id="parser">Parser</h2>
-<p>更新新的 AST 定义： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definition)<br>function_definition = Function(identifier name, statement body)<br>statement = Return(exp)<br>exp = Constant(int) | Unary(unary_operator, exp)<br>unary_operator = Complement | Negate<br></code></pre></td></tr></table></figure></p>
-<p>为 <code>exp</code> 新增了 <code>Unary</code>
-的定义，表示一元操作表达式，由一个 <code>unary-operator</code> 和
-<code>exp</code> 组成。 注意现在 <code>exp</code> 的定义是递归的：一个
-<code>Unary</code> 内部可能包含另一个 <code>exp</code>。</p>
-<p>新定义了 <code>unary_operator</code> 结点，值 <code>Complement</code>
-对应 <code>~</code> 运算符，值 <code>Negate</code> 对应 <code>-</code>
-运算符。</p>
-<p>更新后的形式文法： <figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;program&gt; ::= &lt;function&gt;<br>&lt;function&gt; ::= <span class="hljs-string">&quot;int&quot;</span> &lt;identifier&gt; <span class="hljs-string">&quot;(&quot;</span> <span class="hljs-string">&quot;void&quot;</span> <span class="hljs-string">&quot;)&quot;</span> <span class="hljs-string">&quot;&#123;&quot;</span> &lt;statement&gt; <span class="hljs-string">&quot;&#125;&quot;</span><br>&lt;statement&gt; ::= <span class="hljs-string">&quot;return&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;;&quot;</span><br>&lt;exp&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;exp&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br>&lt;unop&gt; ::= <span class="hljs-string">&quot;-&quot;</span> | <span class="hljs-string">&quot;~&quot;</span><br>&lt;identifier&gt; ::= <span class="hljs-meta">? An identifier token ?</span><br>&lt;int&gt; ::= <span class="hljs-meta">? A constant token ?</span><br></code></pre></td></tr></table></figure></p>
-<p>新增 <code>exp</code> 的产生式规则
-<code>&lt;unop&gt; &lt;exp&gt;</code> 和
-<code>"(" &lt;exp&gt; ")"</code>。 AST
-中不保留括号信息，<code>1</code>、<code>（1)</code> 和
-<code>((((((((1)))))))</code> 在 AST 中均表示为
-<code>Constant(1)</code>。注意并没有给出 递减操作符号 <code>--</code>
-的产生式规则，如果遇到 <code>Token.DoubleHyphen</code> 应报错。</p>
-<p><code>&lt;unop&gt;</code> 对应 AST 中的 <code>unary_operator</code>
-类型。</p>
-<p>对应 <code>parser_exp</code> 的伪代码如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_exp(tokens):<br>    next_token = peek(tokens)<br>    if next_token is an int:<br>        --snip--<br>    else if next_token is &quot;~&quot; or &quot;-&quot;:<br>        operator = parse_unop(tokens)<br>        inner_exp = parse_exp(tokens)<br>        return Unary(operator, inner_exp)<br>    else if next_token == &quot;(&quot;:<br>        take_token(tokens)<br>        inner_exp = parse_exp(tokens)<br>        expect(&quot;)&quot;, tokens)<br>        return inner_exp<br>    else:<br>        fail(&quot;Malformed expression&quot;)<br></code></pre></td></tr></table></figure></p>
-<p>其中的 <code>peek</code> 函数作用为：查看下一个 token
-但不消耗它。用以决定应用哪条产生式规则。如果为
-<strong>一元操作符</strong>，首先解析操作符类型，并递归调用
-<code>parse_exp</code> 解析操作数，最后构造 <code>Unary</code>
-结点。</p>
-<p>如果为括号表达式，则首先消耗左括号，递归解析内部表达值，并验证右括号存在。不创建新结点，直接返回内部表达式。</p>
-<h2 id="implementation-1">Implementation</h2>
-<p><code>lib/Tok_stream.ml</code> <figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs coq"><span class="hljs-keyword">let</span> peek tokens =<br>  <span class="hljs-keyword">match</span> Stream.peek tokens <span class="hljs-built_in">with</span><br>  | <span class="hljs-type">Some</span> token -&gt; token<br>  | <span class="hljs-type">None</span> -&gt; raise End_of_stream<br></code></pre></td></tr></table></figure></p>
-<p><code>lib/parser.ml</code> <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-comment">(* &lt;unop&gt; ::= &quot;-&quot; | &quot;~&quot; *)</span><br><span class="hljs-keyword">let</span> parse_unop tokens =<br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Tok_stream</span>.take_token tokens <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Tilde</span> -&gt; <span class="hljs-type">Ast</span>.<span class="hljs-type">Complement</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Hyphen</span> -&gt; <span class="hljs-type">Ast</span>.<span class="hljs-type">Negate</span><br>  | other -&gt; raise_error ~expected:(<span class="hljs-type">Name</span> <span class="hljs-string">&quot;a unary operator&quot;</span>) ~actual:other<br><br><span class="hljs-comment">(* &lt;exp&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;exp&gt; | &quot;(&quot; &lt;exp&gt; &quot;)&quot; *)</span><br><span class="hljs-keyword">let</span> <span class="hljs-keyword">rec</span> parse_exp tokens =<br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Tok_stream</span>.peek tokens <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Constant</span> _ -&gt; parse_int tokens<br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Tilde</span> | <span class="hljs-type">T</span>.<span class="hljs-type">Hyphen</span> -&gt;<br>      <span class="hljs-keyword">let</span> opera = parse_unop tokens <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> inner_exp = parse_exp tokens <span class="hljs-keyword">in</span><br>      <span class="hljs-type">Unary</span> (opera, inner_exp)<br>  | <span class="hljs-type">T</span>.<span class="hljs-type">OpenParen</span> -&gt;<br>      <span class="hljs-keyword">let</span> _ = <span class="hljs-type">Tok_stream</span>.take_token tokens <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> expr = parse_exp tokens <span class="hljs-keyword">in</span><br>      expect <span class="hljs-type">T</span>.<span class="hljs-type">CloseParen</span> tokens;<br>      expr<br>  | other -&gt; raise_error ~expected:(<span class="hljs-type">Name</span> <span class="hljs-string">&quot;an expression&quot;</span>) ~actual:other<br></code></pre></td></tr></table></figure></p>
+<p>我们成功生成了一元运算符的 AST，但将 AST 转换成 Assembly AST
+却明显不如上一章简单。AST 中的 <code>exp</code> 结点拥有递归结构，而
+Assembly AST 中的 <code>operand</code> 和 <code>instruction</code>
+结点无法直接表达这种结构。我们需要将嵌套的表达式，通过一系列的
+<strong>中间变量</strong> 拆解成一条条的汇编语句。这时，一种介于 C
+程序和 x86 汇编中间的表达形式就呼之欲出。</p>
+<h2 id="tacky-ir">TACKY IR</h2>
+<p>IR (Intermediate Representation)
+是编译器架构中的核心中间层表示。它将高级语言程序转换为与
+<strong>机器无关</strong>、<strong>结构规整</strong>、的较低级表示，但又不像汇编语言那样直接控制硬件细节。作为编译优化和代码生成的基础载体。</p>
+<p>一般 IR 都采用三地址码结构(Three-Address Code, TAC)，每一条指令至多
+<span class="math inline">\(1\)</span> 个运算符和 <span
+class="math inline">\(3\)</span> 个操作数，例如
+<code>add src1, scr2, dst</code>。操作数一般为两个源操作数和一个目标操作数。每条指令的操作数只能是常量或变量，不能是嵌套表达式。为处理嵌套表达式，需要引入临时变量存储中间结果。例如
+<code>return 1 + 2 * 3</code> 的 TACKY 表示为： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs tacky">tmp.0 = 2 * 3<br>tmp.1 = 1 + tmp.0<br>return tmp1<br></code></pre></td></tr></table></figure></p>
+<p>使用 IR 可以消除嵌套表达式，进一步的将 Codegen
+阶段分为多个小型、简单的阶段。IR
+还能提供简单、统一的结构，便于分析程序特性，例如：此表达式的结果是否被使用？此变量是否始终具有相同值。编译器可以通过分析这些特性来对代码进行优化。此外，IR
+还可以作为多种语言的共同目标和多种目标架构的共同起点。例如 LLVM
+提供了统一的后端，只需要将不同语言解析生成 LLVM IR
+即可完成编译器的编写。</p>
+<p><em>Nora Sandler</em> 设计了一种简单的 IR 形式 —— TACKY，使用 ASDL
+可以定义为如下结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definition)<br>function_definition = Funcion(identifier, instruction* body)<br>instruction = Return(val) | Unary(unary_operator, val src, val dst)<br>val = Constant(int) | Var(identifier)<br>unary_operator = Complement | Negate<br></code></pre></td></tr></table></figure>
+<p>TACKY 的定义特别像上一章的 Assembly AST，我们可以叫他 TACKY
+AST。<code>val</code> 只能为常量或表达式，<code>Unary</code>
+为三地址码，其中的<code>dst</code> 的类型必须是一个临时变量
+<code>Val</code> 而不能是 <code>Constant</code></p>
+<p>从 AST 转换为 TACKY AST
+也同样是使用递归下降解析。需要注意的是，对表达式需要从最内层表达式开始，逐层向外处理，为每个子表达式结果创建唯一临时变量，并将其转换为
+<code>instruction</code> 列表。例如：</p>
+<p>Example 1: <code>return ~2</code>: <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs css">AST: <span class="hljs-built_in">Return</span>(<span class="hljs-built_in">Unary</span>(Complement, <span class="hljs-built_in">Constant</span>(<span class="hljs-number">2</span>)))<br>↓<br>TACKY:<br>  <span class="hljs-built_in">Unary</span>(Complement, <span class="hljs-built_in">Constant</span>(<span class="hljs-number">2</span>), <span class="hljs-built_in">Var</span>(<span class="hljs-string">&quot;tmp.0&quot;</span>))<br>  <span class="hljs-built_in">Return</span>(<span class="hljs-built_in">Var</span>(<span class="hljs-string">&quot;tmp.0&quot;</span>))<br></code></pre></td></tr></table></figure></p>
+<p>Example 2: <code>return -~(-8)</code>: <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs css">AST: <span class="hljs-built_in">Return</span>(<span class="hljs-built_in">Unary</span>(Negate, <br>        <span class="hljs-built_in">Unary</span>(Complement, <br>            <span class="hljs-built_in">Unary</span>(Negate, <span class="hljs-built_in">Constant</span>(<span class="hljs-number">8</span>)))))<br>↓<br>TACKY:<br>  <span class="hljs-built_in">Unary</span>(Negate, <span class="hljs-built_in">Constant</span>(<span class="hljs-number">8</span>), <span class="hljs-built_in">Var</span>(<span class="hljs-string">&quot;tmp.0&quot;</span>))<br>  <span class="hljs-built_in">Unary</span>(Complement, <span class="hljs-built_in">Var</span>(<span class="hljs-string">&quot;tmp.0&quot;</span>), <span class="hljs-built_in">Var</span>(<span class="hljs-string">&quot;tmp.1&quot;</span>))<br>  <span class="hljs-built_in">Unary</span>(Negate, <span class="hljs-built_in">Var</span>(<span class="hljs-string">&quot;tmp.1&quot;</span>), <span class="hljs-built_in">Var</span>(<span class="hljs-string">&quot;tmp.2&quot;</span>))<br>  <span class="hljs-built_in">Return</span>(<span class="hljs-built_in">Var</span>(<span class="hljs-string">&quot;tmp.2&quot;</span>))<br></code></pre></td></tr></table></figure></p>
+<p>伪代码如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">emit_tacky_for_exp(e, instructions):<br>    match e with<br>    | Constant(c) -&gt;<br>        return Constant(c)<br>    | Unary(op, inner) -&gt;<br>        src = emit_tacky(inner, instructions)<br>        dst_name = make_temporary()<br>        dst = Var(dst_name)<br>        tacky_op = convert_unop(op)<br>        instructions.append(Unary(tacky_op, src, dst))<br>        return dst<br></code></pre></td></tr></table></figure></p>
+<p><code>make_temporary</code>
+返回一个唯一的、未被使用过的临时变量名。对于 <code>return</code>
+语句，只需要调用 <code>emit_tacky_for_exp</code> 处理返回值，并在生成的
+<code>instructions</code> 后插入 <code>Return Val</code> 即可。</p>
+<p>同时我们还要修改 Compiler Driver, 使得编译支持 <code>--tacky</code>
+选项。</p>
 
                 
               </div>
@@ -424,8 +395,8 @@ C Compiler</em></p>
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>从零开始编写 C 编译器 Chapter 2.1 | Front End</div>
-      <div>https://acmicpc.top/2026/01/22/write_a_c_compiler/Chapter2.1-Frontend/</div>
+      <div>从零开始编写 C 编译器 Chapter 2.2 | Intermediate Representation</div>
+      <div>https://acmicpc.top/2026/01/22/write_a_c_compiler/Chapter2.2-IR/</div>
     </div>
     <div class="license-meta">
       
@@ -469,18 +440,12 @@ C Compiler</em></p>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/01/22/write_a_c_compiler/Chapter2.2-IR/" title="从零开始编写 C 编译器 Chapter 2.2 | Intermediate Representation">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 2.2 | Intermediate Representation</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/01/22/write_a_c_compiler/Chapter2.0-Stack/" title="从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack">
-                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack</span>
+                      <a href="/2026/01/22/write_a_c_compiler/Chapter2.1-Frontend/" title="从零开始编写 C 编译器 Chapter 2.1 | Front End">
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 2.1 | Front End</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
