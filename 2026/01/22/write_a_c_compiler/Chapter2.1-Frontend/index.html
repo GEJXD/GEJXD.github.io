@@ -21,24 +21,24 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="当视图访问 \(PTE_V\) 为 \(0\) 的页表, 或用户尝试访问 \(PTE_U\) 为 \(0\) &#x2F; 内核尝试访问 $PTE_U 为 \(1\) 的页表， 或者是其他违反了 \(PTE_R\) 或 \(PTE_W\) 等 \(flag\) 的页表时就会出现 \(Page Faults\)。 一共有三种 \(Page Faults\): 1. \(load \space page \sp">
+    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Lexer 这部分没新增什么东西，只需要 \(3\) 个 token 类型即可。    字符序列 运算符名称 语义说明     ~ Bitwise complement 按位取反   - Negation 算数负号   -- Decrement 自减运算符    注意到我们新增了">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MIT 6.S081 第五章笔记 | 页面故障">
-<meta property="og:url" content="https://acmicpc.top/2024/02/29/MIT-6.S081-lab05%20Notes/index.html">
+<meta property="og:title" content="从零开始编写 C 编译器 Chapter 2.1 | Front End">
+<meta property="og:url" content="https://acmicpc.top/2026/01/22/write_a_c_compiler/Chapter2.1-Frontend/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="当视图访问 \(PTE_V\) 为 \(0\) 的页表, 或用户尝试访问 \(PTE_U\) 为 \(0\) &#x2F; 内核尝试访问 $PTE_U 为 \(1\) 的页表， 或者是其他违反了 \(PTE_R\) 或 \(PTE_W\) 等 \(flag\) 的页表时就会出现 \(Page Faults\)。 一共有三种 \(Page Faults\): 1. \(load \space page \sp">
+<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Lexer 这部分没新增什么东西，只需要 \(3\) 个 token 类型即可。    字符序列 运算符名称 语义说明     ~ Bitwise complement 按位取反   - Negation 算数负号   -- Decrement 自减运算符    注意到我们新增了">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-02-28T19:20:32.000Z">
-<meta property="article:modified_time" content="2024-09-05T06:35:04.000Z">
+<meta property="article:published_time" content="2026-01-22T09:07:25.000Z">
+<meta property="article:modified_time" content="2026-01-22T09:50:39.031Z">
 <meta property="article:author" content="江欣婷">
-<meta property="article:tag" content="6.S081">
+<meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>MIT 6.S081 第五章笔记 | 页面故障 - 江欣婷&#39;s博客</title>
+  <title>从零开始编写 C 编译器 Chapter 2.1 | Front End - 江欣婷&#39;s博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -216,7 +216,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="MIT 6.S081 第五章笔记 | 页面故障"></span>
+            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 2.1 | Front End"></span>
           
         </div>
 
@@ -232,8 +232,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-02-29 03:20" pubdate>
-          2024年2月29日 凌晨
+        <time datetime="2026-01-22 17:07" pubdate>
+          2026年1月22日 下午
         </time>
       </span>
     
@@ -244,7 +244,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          613 字
+          810 字
         
       </span>
     
@@ -255,7 +255,7 @@
         
         
         
-          6 分钟
+          7 分钟
         
       </span>
     
@@ -301,53 +301,84 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">MIT 6.S081 第五章笔记 | 页面故障</h1>
+            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 2.1 | Front End</h1>
             
             
               <div class="markdown-body">
                 
-                <p>当视图访问 <span class="math inline">\(PTE_V\)</span> 为 <span
-class="math inline">\(0\)</span> 的页表, 或用户尝试访问 <span
-class="math inline">\(PTE_U\)</span> 为 <span
-class="math inline">\(0\)</span> / 内核尝试访问 $PTE_U 为 <span
-class="math inline">\(1\)</span> 的页表， 或者是其他违反了 <span
-class="math inline">\(PTE_R\)</span> 或 <span
-class="math inline">\(PTE_W\)</span> 等 <span
-class="math inline">\(flag\)</span> 的页表时就会出现 <span
-class="math inline">\(Page Faults\)</span>。</p>
-<p>一共有三种 <span class="math inline">\(Page Faults\)</span>: 1. <span
-class="math inline">\(load \space page \space faults\)</span>:
-当<code>load</code>指令无法解析虚拟地址时发生。 2. <span
-class="math inline">\(store \space page \space faults\)</span>:
-当<code>store</code>指令无法解析虚拟地址时发生。 3. <span
-class="math inline">\(instructions \space page \space faults\)</span>:
-当无法解析一条指令所在的虚拟地址时发生。</p>
-<p><span class="math inline">\(page \space faults\)</span>
-种类的代码存放在<code>scause</code>寄存器中，无法翻译的地址存放在<code>stval</code>寄存器中。</p>
-<p>在xv6中对于 <span class="math inline">\(exception\)</span>
-一律都会将这个进程kill掉，但是实际上可以结合<span
-class="math inline">\(page \space faults\)</span> 实现一些功能。</p>
-<ol type="1">
-<li>可以实现 <span class="math inline">\(\textbf{copy-on-write} \space
-\textbf{fork}\)</span>。在<code>fork()</code>时，一般都是将父进程的所有<span
-class="math inline">\(user \space memory\)</span>
-复制到子进程中，但是<code>fork</code>之后一般会直接进行<code>exec</code>，这就会导致复制过来的
-<span class="math inline">\(user \space memory\)</span>
-又被放弃掉。因此改进的思路是：子进程和父进程共享一个物理内存，但是mapping时将PTE_W置零，只有当子进程或者父进程的其中一个进程需要向这个地址写入时产生page
-fault，此时才会进行copy。</li>
-<li>可以实现 <span class="math inline">\(\textbf{lazy} \space
-\testbf{allocation}\)</span>。旧的<code>sbrk()</code>申请分配内存，但是申请的这些内存进程很可能不会全部用到，因此改进方案为：当进程调用<code>sbrk()</code>时，将修改<code>p-&gt;sz</code>，但是并不实际分配内存，并且将PTE_V置0。当在试图访问这些新的地址时发生page
-fault再进行物理内存的分配。</li>
-<li><span class="math inline">\(\textbf{paging} \space \textbf{from}
-\space
-\textbf{disk}\)</span>：当内存没有足够的物理空间时，可以先将数据存储在其他的存储介质（比如硬盘）上，将该地址的PTE设置为<span
-class="math inline">\(invalid\)</span>，使其成为一个驱逐页(<span
-class="math inline">\(evicted
-page\)</span>)。当需要读或者写这个PTE时，产生Page
-fault，然后在内存上分配一个物理地址，将这个硬盘上的evicted
-page的内容写入到该内存上，设置PTE为valid并且引用到这个内存物理地址。</li>
-</ol>
-<p>这两节没有什么新东西，主要就是结合前面三章的内容灵活应用，讲解一些操作系统的优化。更多在于理解为什么现代操作系统要这么设计(一个虚拟内存玩出花来了属于是)。</p>
+                <blockquote>
+<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a
+C Compiler</em></p>
+</blockquote>
+<h2 id="lexer">Lexer</h2>
+<p>这部分没新增什么东西，只需要 <span class="math inline">\(3\)</span>
+个 token 类型即可。</p>
+<table>
+<thead>
+<tr>
+<th>字符序列</th>
+<th>运算符名称</th>
+<th>语义说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~</code></td>
+<td>Bitwise complement</td>
+<td>按位取反</td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td>Negation</td>
+<td>算数负号</td>
+</tr>
+<tr>
+<td><code>--</code></td>
+<td>Decrement</td>
+<td>自减运算符</td>
+</tr>
+</tbody>
+</table>
+<p>注意到我们新增了 <code>--</code>
+运算符的解析。这是因为目前编译器只支持常量，而 <code>--2</code>
+这样的表达式是非法的，我们应在解析阶段报错。如果我们不解析
+<code>--</code>，编译器会将 <code>--2</code> 识别为 <code>-(-2)</code>
+造成语义上的错误。所以在 Lexer 阶段我们会解析 <code>--</code>
+运算符，但在后续阶段，我们会忽略它。</p>
+<p>对应的正则表达式和上一章中的标点符号 <code>;</code>, <code>(</code>
+一致，这里不做赘述。</p>
+<h2 id="implementation">Implementation</h2>
+<p><code>lib/token.ml</code>: <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> t =<br>  <span class="hljs-comment">(* tokens with contents *)</span><br>  | <span class="hljs-type">Identifier</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">string</span><br>  | <span class="hljs-type">Constant</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">int</span><br>  <span class="hljs-comment">(* Keywords *)</span><br>  | <span class="hljs-type">KWInt</span><br>  | <span class="hljs-type">KWReturn</span><br>  | <span class="hljs-type">KWVoid</span><br>  <span class="hljs-comment">(* punctuation *)</span><br>  | <span class="hljs-type">OpenParen</span><br>  | <span class="hljs-type">CloseParen</span><br>  | <span class="hljs-type">OpenBrace</span><br>  | <span class="hljs-type">CloseBrace</span><br>  | <span class="hljs-type">Semicolon</span><br>  | <span class="hljs-type">Tilde</span><br>  | <span class="hljs-type">Hyphen</span><br>  | <span class="hljs-type">DoubleHyphen</span><br></code></pre></td></tr></table></figure></p>
+<p><code>lib/lexer.ml</code>: <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> match_rules =<br>  [<br>    generate_rule &#123;_|[<span class="hljs-type">A</span>-<span class="hljs-type">Za</span>-z_][<span class="hljs-type">A</span>-<span class="hljs-type">Za</span>-z0-<span class="hljs-number">9_</span>]*\b|_&#125; convert_identifier;<br>    generate_rule &#123;_|[<span class="hljs-number">0</span>-<span class="hljs-number">9</span>]+\b|_&#125; convert_constant;<br>    generate_rule &#123;_|\(|_&#125; (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">OpenParen</span>);<br>    generate_rule &#123;_|\)|_&#125; (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">CloseParen</span>);<br>    generate_rule &#123;_|\&#123;|_&#125; (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">OpenBrace</span>);<br>    generate_rule &#123;_|\&#125;|_&#125; (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">CloseBrace</span>);<br>    generate_rule <span class="hljs-string">&quot;;&quot;</span> (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">Semicolon</span>);<br>    generate_rule <span class="hljs-string">&quot;-&quot;</span> (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">Hyphen</span>);<br>    generate_rule <span class="hljs-string">&quot;--&quot;</span> (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">DoubleHyphen</span>);<br>    generate_rule <span class="hljs-string">&quot;~&quot;</span> (convert_literal <span class="hljs-type">T</span>.<span class="hljs-type">Tilde</span>);<br>  ]<br></code></pre></td></tr></table></figure></p>
+<h2 id="parser">Parser</h2>
+<p>更新新的 AST 定义： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definition)<br>function_definition = Function(identifier name, statement body)<br>statement = Return(exp)<br>exp = Constant(int) | Unary(unary_operator, exp)<br>unary_operator = Complement | Negate<br></code></pre></td></tr></table></figure></p>
+<p>为 <code>exp</code> 新增了 <code>Unary</code>
+的定义，表示一元操作表达式，由一个 <code>unary-operator</code> 和
+<code>exp</code> 组成。 注意现在 <code>exp</code> 的定义是递归的：一个
+<code>Unary</code> 内部可能包含另一个 <code>exp</code>。</p>
+<p>新定义了 <code>unary_operator</code> 结点，值 <code>Complement</code>
+对应 <code>~</code> 运算符，值 <code>Negate</code> 对应 <code>-</code>
+运算符。</p>
+<p>更新后的形式文法： <figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;program&gt; ::= &lt;function&gt;<br>&lt;function&gt; ::= <span class="hljs-string">&quot;int&quot;</span> &lt;identifier&gt; <span class="hljs-string">&quot;(&quot;</span> <span class="hljs-string">&quot;void&quot;</span> <span class="hljs-string">&quot;)&quot;</span> <span class="hljs-string">&quot;&#123;&quot;</span> &lt;statement&gt; <span class="hljs-string">&quot;&#125;&quot;</span><br>&lt;statement&gt; ::= <span class="hljs-string">&quot;return&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;;&quot;</span><br>&lt;exp&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;exp&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br>&lt;unop&gt; ::= <span class="hljs-string">&quot;-&quot;</span> | <span class="hljs-string">&quot;~&quot;</span><br>&lt;identifier&gt; ::= <span class="hljs-meta">? An identifier token ?</span><br>&lt;int&gt; ::= <span class="hljs-meta">? A constant token ?</span><br></code></pre></td></tr></table></figure></p>
+<p>新增 <code>exp</code> 的产生式规则
+<code>&lt;unop&gt; &lt;exp&gt;</code> 和
+<code>"(" &lt;exp&gt; ")"</code>。 AST
+中不保留括号信息，<code>1</code>、<code>（1)</code> 和
+<code>((((((((1)))))))</code> 在 AST 中均表示为
+<code>Constant(1)</code>。注意并没有给出 递减操作符号 <code>--</code>
+的产生式规则，如果遇到 <code>Token.DoubleHyphen</code> 应报错。</p>
+<p><code>&lt;unop&gt;</code> 对应 AST 中的 <code>unary_operator</code>
+类型。</p>
+<p>对应 <code>parser_exp</code> 的伪代码如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_exp(tokens):<br>    next_token = peek(tokens)<br>    if next_token is an int:<br>        --snip--<br>    else if next_token is &quot;~&quot; or &quot;-&quot;:<br>        operator = parse_unop(tokens)<br>        inner_exp = parse_exp(tokens)<br>        return Unary(operator, inner_exp)<br>    else if next_token == &quot;(&quot;:<br>        take_token(tokens)<br>        inner_exp = parse_exp(tokens)<br>        expect(&quot;)&quot;, tokens)<br>        return inner_exp<br>    else:<br>        fail(&quot;Malformed expression&quot;)<br></code></pre></td></tr></table></figure></p>
+<p>其中的 <code>peek</code> 函数作用为：查看下一个 token
+但不消耗它。用以决定应用哪条产生式规则。如果为
+<strong>一元操作符</strong>，首先解析操作符类型，并递归调用
+<code>parse_exp</code> 解析操作数，最后构造 <code>Unary</code>
+结点。</p>
+<p>如果为括号表达式，则首先消耗左括号，递归解析内部表达值，并验证右括号存在。不创建新结点，直接返回内部表达式。</p>
+<h2 id="implementation-1">Implementation</h2>
+<p><code>lib/Tok_stream.ml</code> <figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs coq"><span class="hljs-keyword">let</span> peek tokens =<br>  <span class="hljs-keyword">match</span> Stream.peek tokens <span class="hljs-built_in">with</span><br>  | <span class="hljs-type">Some</span> token -&gt; token<br>  | <span class="hljs-type">None</span> -&gt; raise End_of_stream<br></code></pre></td></tr></table></figure></p>
+<p><code>lib/parser.ml</code> <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-comment">(* &lt;unop&gt; ::= &quot;-&quot; | &quot;~&quot; *)</span><br><span class="hljs-keyword">let</span> parse_unop tokens =<br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Tok_stream</span>.take_token tokens <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Tilde</span> -&gt; <span class="hljs-type">Ast</span>.<span class="hljs-type">Complement</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Hyphen</span> -&gt; <span class="hljs-type">Ast</span>.<span class="hljs-type">Negate</span><br>  | other -&gt; raise_error ~expected:(<span class="hljs-type">Name</span> <span class="hljs-string">&quot;a unary operator&quot;</span>) ~actual:other<br><br><span class="hljs-comment">(* &lt;exp&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;exp&gt; | &quot;(&quot; &lt;exp&gt; &quot;)&quot; *)</span><br><span class="hljs-keyword">let</span> <span class="hljs-keyword">rec</span> parse_exp tokens =<br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Tok_stream</span>.peek tokens <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Constant</span> _ -&gt; parse_int tokens<br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Tilde</span> | <span class="hljs-type">T</span>.<span class="hljs-type">Hyphen</span> -&gt;<br>      <span class="hljs-keyword">let</span> opera = parse_unop tokens <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> inner_exp = parse_exp tokens <span class="hljs-keyword">in</span><br>      <span class="hljs-type">Unary</span> (opera, inner_exp)<br>  | <span class="hljs-type">T</span>.<span class="hljs-type">OpenParen</span> -&gt;<br>      <span class="hljs-keyword">let</span> _ = <span class="hljs-type">Tok_stream</span>.take_token tokens <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> expr = parse_exp tokens <span class="hljs-keyword">in</span><br>      expect <span class="hljs-type">T</span>.<span class="hljs-type">CloseParen</span> tokens;<br>      expr<br>  | other -&gt; raise_error ~expected:(<span class="hljs-type">Name</span> <span class="hljs-string">&quot;an expression&quot;</span>) ~actual:other<br></code></pre></td></tr></table></figure></p>
 
                 
               </div>
@@ -366,7 +397,7 @@ page的内容写入到该内存上，设置PTE为valid并且引用到这个内�
     
       <span class="category-chain">
         
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  <a href="/categories/compiler/" class="category-chain-item">compiler</a>
   
   
 
@@ -381,7 +412,7 @@ page的内容写入到该内存上，设置PTE为valid并且引用到这个内�
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/6-S081/" class="print-no-link">#6.S081</a>
+        <a href="/tags/compiler/" class="print-no-link">#compiler</a>
       
     </div>
   
@@ -393,8 +424,8 @@ page的内容写入到该内存上，设置PTE为valid并且引用到这个内�
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>MIT 6.S081 第五章笔记 | 页面故障</div>
-      <div>https://acmicpc.top/2024/02/29/MIT-6.S081-lab05 Notes/</div>
+      <div>从零开始编写 C 编译器 Chapter 2.1 | Front End</div>
+      <div>https://acmicpc.top/2026/01/22/write_a_c_compiler/Chapter2.1-Frontend/</div>
     </div>
     <div class="license-meta">
       
@@ -406,7 +437,7 @@ page的内容写入到该内存上，设置PTE为valid并且引用到这个内�
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年2月29日</div>
+          <div>2026年1月22日</div>
         </div>
       
       
@@ -438,18 +469,12 @@ page的内容写入到该内存上，设置PTE为valid并且引用到这个内�
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/02/29/MIT-6.S081-lab04%20Notes/" title="MIT 6.S081 第四章笔记 | 陷入指令和中断">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">MIT 6.S081 第四章笔记 | 陷入指令和中断</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/02/28/MIT-6.S081-lab03/" title="MIT 6.S081 lab3：page tables | 页表">
-                        <span class="hidden-mobile">MIT 6.S081 lab3：page tables | 页表</span>
+                      <a href="/2026/01/22/write_a_c_compiler/Chapter2.0-Stack/" title="从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack">
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

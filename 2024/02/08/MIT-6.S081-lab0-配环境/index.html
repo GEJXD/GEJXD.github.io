@@ -21,12 +21,12 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前言系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖参考：https:&#x2F;&#x2F;pdos.csail.mit.edu&#x2F;6.828&#x2F;2021&#x2F;tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-gn">
+    <meta name="description" content="前言 系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖 参考：https:&#x2F;&#x2F;pdos.csail.mit.edu&#x2F;6.828&#x2F;2021&#x2F;tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 lab0：配置xv6环境+vscode调试">
 <meta property="og:url" content="https://acmicpc.top/2024/02/08/MIT-6.S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="前言系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖参考：https:&#x2F;&#x2F;pdos.csail.mit.edu&#x2F;6.828&#x2F;2021&#x2F;tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-gn">
+<meta property="og:description" content="前言 系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖 参考：https:&#x2F;&#x2F;pdos.csail.mit.edu&#x2F;6.828&#x2F;2021&#x2F;tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/neofetch.png">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/riscv64.png">
@@ -326,93 +326,93 @@
             
               <div class="markdown-body">
                 
-                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>系统为Archlinux物理机，环境如下：</p>
-<p><img src="/img/6.S081/neofetch.png" srcset="/img/loading.gif" lazyload></p>
+                <h2 id="前言">前言</h2>
+<p>系统为Archlinux物理机，环境如下：</p>
+<p><img src="/img/6.S081/neofetch.png" srcset="/img/loading.gif" lazyload /></p>
 <p>使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。</p>
-<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>参考：<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2021/tools.html">https://pdos.csail.mit.edu/6.828/2021/tools.html</a></p>
+<h2 id="安装依赖">安装依赖</h2>
+<p>参考：https://pdos.csail.mit.edu/6.828/2021/tools.html</p>
 <p><strong>首先安装转义riscv64的包：</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> pacman -S riscv64-linux-gnu-binutils riscv64-linux-gnu-gcc riscv64-linux-gnu-gdb<br></code></pre></td></tr></table></figure>
-
 <p><strong>测试一下环境</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">riscv64-linux-gnu-gcc --version<br>qemu-system-riscv64 --version<br></code></pre></td></tr></table></figure>
-
 <p>如果出现下图就说明成功了：</p>
-<p><img src="/img/6.S081/riscv64.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/riscv64.png" srcset="/img/loading.gif" lazyload /></p>
 <p><strong>安装运行xv6的模拟器:</strong></p>
 <p>官网上的qemu-arch-extra已经被替换为了qemu-arch-extra-git。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> pacman -S qemu-arch-extra-git<br></code></pre></td></tr></table></figure>
-
 <p>到这需要的环境就装完了<del>(不会装vscode建议退课)</del>。</p>
-<h2 id="编译运行xv6"><a href="#编译运行xv6" class="headerlink" title="编译运行xv6"></a>编译运行xv6</h2><p>参考：<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2021/labs/util.html">https://pdos.csail.mit.edu/6.828/2021/labs/util.html</a></p>
+<h2 id="编译运行xv6">编译运行xv6</h2>
+<p>参考：https://pdos.csail.mit.edu/6.828/2021/labs/util.html</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">git <span class="hljs-built_in">clone</span> git://g.csail.mit.edu/xv6-labs-2021<br><span class="hljs-built_in">cd</span> xv6-labs-2021<br></code></pre></td></tr></table></figure>
-
 <p>课程里提到实验用的xv6和实际发布的不太一样，所以别下载github上的，用课程官网的这个。如果要其他年份的就把末尾的<code>xv6-labs-2021</code>改为其他年份就行。</p>
 <p>可以发现master分支里啥也没有，我们先切换到lab1用到的<code>util</code>分支：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">git checkout util<br></code></pre></td></tr></table></figure>
-
 <p>这时候<code>ls</code>一下就会出现xv6的源码了：</p>
-<p><img src="/img/6.S081/utils.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/utils.png" srcset="/img/loading.gif" lazyload /></p>
 <p>然后用<code>qemu</code>编译一下看看</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make qemu<br></code></pre></td></tr></table></figure>
-
-<p><img src="/img/6.S081/qemu.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/qemu.png" srcset="/img/loading.gif" lazyload /></p>
 <p>最后出现这几行就说明编译成功了，按<code>ctrl + a, x</code>退出模拟环境。</p>
-<p><img src="/img/6.S081/boot.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/boot.png" srcset="/img/loading.gif" lazyload /></p>
 <p>这里会遇到几个坑：</p>
-<h3 id="编译显示infinite-recursion-detected"><a href="#编译显示infinite-recursion-detected" class="headerlink" title="编译显示infinite recursion detected"></a>编译显示<code>infinite recursion detected</code></h3><p><img src="/img/6.S081/error.png" srcset="/img/loading.gif" lazyload></p>
-<p>解决方案见<a target="_blank" rel="noopener" href="https://github.com/mit-pdos/xv6-riscv/pull/126%E3%80%82">https://github.com/mit-pdos/xv6-riscv/pull/126。</a></p>
+<h3
+id="编译显示infinite-recursion-detected">编译显示<code>infinite recursion detected</code></h3>
+<p><img src="/img/6.S081/error.png" srcset="/img/loading.gif" lazyload /></p>
+<p>解决方案见https://github.com/mit-pdos/xv6-riscv/pull/126。</p>
 <p>由于实现的是操作系统，需要很高的代码可靠性，所以MIT在<code>Makefile</code>里设置了把所有警告都视为错误。在<code>user/sh.c</code>中<code>runcmd</code>前添加一行<code>__attribute__((noreturn))</code>即可。</p>
-<p><img src="/img/6.S081/runcmd.png" srcset="/img/loading.gif" lazyload></p>
-<h3 id="编译在最后一步卡住"><a href="#编译在最后一步卡住" class="headerlink" title="编译在最后一步卡住"></a>编译在最后一步卡住</h3><p>如果用的是2020版的<code>xv6</code>，由于老版本的<code>qemu</code>和新版本的不兼容，可以使用<code>downgrage</code>来降级<code>qemu</code>.</p>
+<p><img src="/img/6.S081/runcmd.png" srcset="/img/loading.gif" lazyload /></p>
+<h3 id="编译在最后一步卡住">编译在最后一步卡住</h3>
+<p>如果用的是2020版的<code>xv6</code>，由于老版本的<code>qemu</code>和新版本的不兼容，可以使用<code>downgrage</code>来降级<code>qemu</code>.</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> downgrade qemu-arch-extra<br></code></pre></td></tr></table></figure>
-
 <p>选择<code>5.2.0</code>或以前的版本即可。</p>
-<p>也可以用源码编译安装老版本的<code>qemu</code>,参考：<a target="_blank" rel="noopener" href="https://www.xujintong.com/2023/12/24/187/">https://www.xujintong.com/2023/12/24/187/</a></p>
+<p>也可以用源码编译安装老版本的<code>qemu</code>,参考：https://www.xujintong.com/2023/12/24/187/</p>
 <p><strong>PS：经过亲身试验，2021版和2020版在实验内容上一模一样，所以建议用2021版，这样就不用降级<code>qemu</code>。</strong></p>
-<h2 id="配置VScode和clangd"><a href="#配置VScode和clangd" class="headerlink" title="配置VScode和clangd"></a>配置VScode和clangd</h2><p>配中文、主题什么的就不说了。</p>
-<p>需要安装的插件有两个：C&#x2F;C++（用来配置GDB调试）、clangd (代码补全)。</p>
-<p><img src="/img/6.S081/C-C++.png" srcset="/img/loading.gif" lazyload></p>
-<p><img src="/img/6.S081/clangd.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="配置vscode和clangd">配置VScode和clangd</h2>
+<p>配中文、主题什么的就不说了。</p>
+<p>需要安装的插件有两个：C/C++（用来配置GDB调试）、clangd
+(代码补全)。</p>
+<p><img src="/img/6.S081/C-C++.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="/img/6.S081/clangd.png" srcset="/img/loading.gif" lazyload /></p>
 <p>可以发现<code>clangd</code>找不到标准库和<code>xv6</code>的库，需要用<code>compile_commands.json</code>文件来指明，可以用<code>bear</code>包来自动生成。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">sudo</span> pacman -S bear<br>make clean <span class="hljs-comment"># 清空上一次编译的内容</span><br>bear -- make qemu<br></code></pre></td></tr></table></figure>
-
 <p>然后<code>compile_commands.json</code>文件里就指明了编译所需头文件的路径：</p>
-<p><img src="/img/6.S081/compile_commands.png" srcset="/img/loading.gif" lazyload></p>
-<h2 id="配置代码自动调整格式-可选"><a href="#配置代码自动调整格式-可选" class="headerlink" title="配置代码自动调整格式(可选)"></a>配置代码自动调整格式(可选)</h2><p><code>xv6</code>的代码风格也太古老了，看的特别不顺眼，所以用<code>llvm</code>的代码风格魔改了一下。</p>
+<p><img src="/img/6.S081/compile_commands.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="配置代码自动调整格式可选">配置代码自动调整格式(可选)</h2>
+<p><code>xv6</code>的代码风格也太古老了，看的特别不顺眼，所以用<code>llvm</code>的代码风格魔改了一下。</p>
 <p>首先按<code>ctrl + ,</code>，进入<code>vscode</code>的设置，搜索<code>format on save</code>,打上钩，这样在按<code>ctrl + s</code>保存代码的时候就可以自动格式化代码。</p>
-<p>然后在<code>xv6</code>的根目录新建文件<code>.clang-format</code>，借用一下这个老哥的文件:<a target="_blank" rel="noopener" href="https://github.com/kehanXue/google-style-clang-format/blob/master/.clang-format%E3%80%82%E6%8A%8A%E9%87%8C%E9%9D%A2%E7%9A%84%60.clang-format%60%E5%A4%8D%E5%88%B6%E5%88%B0%E6%88%91%E4%BB%AC%E7%9A%84%E6%96%87%E4%BB%B6%E9%87%8C%E9%9D%A2%E5%B0%B1%E8%A1%8C%EF%BC%8C%60tab-size%60%E4%BB%80%E4%B9%88%E7%9A%84%E4%B8%8D%E4%B9%A0%E6%83%AF2%E4%B9%9F%E5%8F%AF%E4%BB%A5%E6%94%B9%E4%B8%BA4%E3%80%82">https://github.com/kehanXue/google-style-clang-format/blob/master/.clang-format。把里面的`.clang-format`复制到我们的文件里面就行，`tab-size`什么的不习惯2也可以改为4。</a></p>
+<p>然后在<code>xv6</code>的根目录新建文件<code>.clang-format</code>，借用一下这个老哥的文件:https://github.com/kehanXue/google-style-clang-format/blob/master/.clang-format。把里面的<code>.clang-format</code>复制到我们的文件里面就行，<code>tab-size</code>什么的不习惯2也可以改为4。</p>
 <p>需要注意的是，不要配置自动为头文件排序，不然声明顺序不对会提示函数未声明。在<code>.clangd-format</code>里面设置<code>SortIncludes: false</code>。</p>
-<h2 id="使用VScode-gdb调试"><a href="#使用VScode-gdb调试" class="headerlink" title="使用VScode + gdb调试"></a>使用VScode + gdb调试</h2><p>用<code>terminal</code>调试效率太低了(也可能是我太菜了)，所以用<code>vscode</code>配置<code>launch.json</code>来用图形化界面。</p>
-<p>详细解释参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/KatyuMarisaBlog/p/13727565.html%EF%BC%8C%E8%BF%99%E9%87%8C%E5%B0%B1%E4%B8%8D%E8%AF%B4%E7%BB%86%E8%8A%82%E4%BA%86%E3%80%82">https://www.cnblogs.com/KatyuMarisaBlog/p/13727565.html，这里就不说细节了。</a></p>
+<h2 id="使用vscode-gdb调试">使用VScode + gdb调试</h2>
+<p>用<code>terminal</code>调试效率太低了(也可能是我太菜了)，所以用<code>vscode</code>配置<code>launch.json</code>来用图形化界面。</p>
+<p>详细解释参考：https://www.cnblogs.com/KatyuMarisaBlog/p/13727565.html，这里就不说细节了。</p>
 <p>在<code>xv6</code>根目录新建目录<code>.vscode</code>，里面新建文件<code>launch.json</code>。把下面这一段东西复制进去：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;version&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;0.2.0&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;configurations&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>        <span class="hljs-punctuation">&#123;</span><br>            <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;debug xv6&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;cppdbg&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;request&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;launch&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;program&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;$&#123;workspaceFolder&#125;/kernel/kernel&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;stopAtEntry&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;cwd&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;$&#123;workspaceFolder&#125;&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;miDebuggerServerAddress&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;localhost:26000&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;miDebuggerPath&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;/usr/bin/riscv64-linux-gnu-gdb&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;environment&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;externalConsole&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;MIMode&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;gdb&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;setupCommands&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>                <span class="hljs-punctuation">&#123;</span><br>                    <span class="hljs-attr">&quot;description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;pretty printing&quot;</span><span class="hljs-punctuation">,</span><br>                    <span class="hljs-attr">&quot;text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;-enable-pretty-printing&quot;</span><span class="hljs-punctuation">,</span><br>                    <span class="hljs-attr">&quot;ignoreFailures&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><br>                <span class="hljs-punctuation">&#125;</span><br>            <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;logging&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>                <span class="hljs-comment">// &quot;engineLogging&quot;: true,</span><br>                <span class="hljs-comment">// &quot;programOutput&quot;: true,</span><br>            <span class="hljs-punctuation">&#125;</span><br>        <span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">]</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
-
 <p>注意<code>midDebuggerPath</code>这一行，如果你用的是<code>riscv64-linux-gnu-gdb</code>就填<code>riscv64-linux-gnu-gdb</code>，如果是<code>riscv64-unknown-elf-gcc</code>就填<code>riscv64-unknown-elf-gcc</code>，其他的同理。</p>
 <p>之后运行</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make qemu-gdb<br></code></pre></td></tr></table></figure>
-
 <p>来开启<code>qemu</code>的<code>gdb</code>接口，可以看到用的接口是<code>26000</code>。</p>
-<p><img src="/img/6.S081/qemu-gdb.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/qemu-gdb.png" srcset="/img/loading.gif" lazyload /></p>
 <p>在<code>xv6</code>根目录会自动新增一个<code>gdbinit</code>文件，把文件里的<code>target remote 127.0.0.1:26000</code>行删除。</p>
-<p><img src="/img/6.S081/gdbinit.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/gdbinit.png" srcset="/img/loading.gif" lazyload /></p>
 <p>每一次执行<code>make clean</code>时都要把这一行删除，目前没找到一劳永逸的办法。</p>
 <p>然后在需要调试的文件里添加断点，按下<code>F5</code>，<code>gbd</code>正确停止到<code>kernel</code>的<code>main</code>函数里。</p>
-<p><img src="/img/6.S081/gdb_main.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/gdb_main.png" srcset="/img/loading.gif" lazyload /></p>
 <p>在需要调试的代码前加断点，这里用第一个实验<code>sleep.c</code>为例：</p>
-<p><img src="/img/6.S081/sleep_break.png" srcset="/img/loading.gif" lazyload></p>
-<p><img src="/img/6.S081/break_point.png" srcset="/img/loading.gif" lazyload></p>
-<p>可以看到断点是灰红色+空心的，说明<code>vscode</code>并没有正确切换符号表，我们打开调试控制台，输入<code>-exec file /user/_sleep </code>，然后就发现断点变红+实心了。</p>
-<p><img src="/img/6.S081/exec.png" srcset="/img/loading.gif" lazyload></p>
-<p><img src="/img/6.S081/bread_point_red.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/sleep_break.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="/img/6.S081/break_point.png" srcset="/img/loading.gif" lazyload /></p>
+<p>可以看到断点是灰红色+空心的，说明<code>vscode</code>并没有正确切换符号表，我们打开调试控制台，输入<code>-exec file /user/_sleep</code>，然后就发现断点变红+实心了。</p>
+<p><img src="/img/6.S081/exec.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="/img/6.S081/bread_point_red.png" srcset="/img/loading.gif" lazyload /></p>
 <p>在<code>xv6</code>终端中输入<code>sleep 10</code>来运行程序，点击上方的继续按钮，<code>gdb</code>将会运行到断点处停下，然后就和调试其他程序一样用就行。</p>
-<p><img src="/img/6.S081/sleep_10.png" srcset="/img/loading.gif" lazyload></p>
-<p><img src="/img/6.S081/run.png" srcset="/img/loading.gif" lazyload></p>
-<h2 id="关于提交lab"><a href="#关于提交lab" class="headerlink" title="关于提交lab"></a>关于提交lab</h2><p>管理code参考：<a target="_blank" rel="noopener" href="https://xv6.dgs.zone/labs/use_git/git1.html">https://xv6.dgs.zone/labs/use_git/git1.html</a></p>
+<p><img src="/img/6.S081/sleep_10.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="/img/6.S081/run.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="关于提交lab">关于提交lab</h2>
+<p>管理code参考：https://xv6.dgs.zone/labs/use_git/git1.html</p>
 <p>主要说一说怎么提交。</p>
-<p>首先在这个网站注册账号并复制<code>api-KEY</code>：<a target="_blank" rel="noopener" href="https://6828.scripts.mit.edu/2021/handin.py/">https://6828.scripts.mit.edu/2021/handin.py/</a></p>
+<p>首先在这个网站注册账号并复制<code>api-KEY</code>：https://6828.scripts.mit.edu/2021/handin.py/</p>
 <p>将所有改动提交到<code>github</code>后，在根目录输入：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make handin<br></code></pre></td></tr></table></figure>
-
 <p>之后会提示让输入<code>api-key</code>，复制进去回车就行。如果<code>api-key</code>修改了，可以在文件<code>myapi.key</code>同步修改即可。</p>
 
                 

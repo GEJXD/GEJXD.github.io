@@ -21,19 +21,17 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="lab3 - page table前置准备主要内容为熟悉页表遍历以及地址转换。 根据课程官网的要求，需要阅读完教材的第三章$Page \space tables$。并且读懂下列源代码：kernel&#x2F;memlayout.h, kernel&#x2F;vm.c, kernel&#x2F;kalloc.c, kernel&#x2F;riscv.h, user&#x2F;exec.c。 相关笔记参考: lecture 3 Notes 将sysc">
+    <meta name="description" content="lab3 - page table 前置准备 主要内容为熟悉页表遍历以及地址转换。 根据课程官网的要求，需要阅读完教材的第三章\(Page \space tables\)。并且读懂下列源代码：kernel&#x2F;memlayout.h, kernel&#x2F;vm.c, kernel&#x2F;kalloc.c, kernel&#x2F;riscv.h, user&#x2F;exec.c。 相关笔记参考: lecture 3 Notes 将">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 lab3：page tables | 页表">
 <meta property="og:url" content="https://acmicpc.top/2024/02/28/MIT-6.S081-lab03/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="lab3 - page table前置准备主要内容为熟悉页表遍历以及地址转换。 根据课程官网的要求，需要阅读完教材的第三章$Page \space tables$。并且读懂下列源代码：kernel&#x2F;memlayout.h, kernel&#x2F;vm.c, kernel&#x2F;kalloc.c, kernel&#x2F;riscv.h, user&#x2F;exec.c。 相关笔记参考: lecture 3 Notes 将sysc">
+<meta property="og:description" content="lab3 - page table 前置准备 主要内容为熟悉页表遍历以及地址转换。 根据课程官网的要求，需要阅读完教材的第三章\(Page \space tables\)。并且读懂下列源代码：kernel&#x2F;memlayout.h, kernel&#x2F;vm.c, kernel&#x2F;kalloc.c, kernel&#x2F;riscv.h, user&#x2F;exec.c。 相关笔记参考: lecture 3 Notes 将">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-03/panic.png">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-03/ugetpid.png">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-03/print.png">
-<meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-03/bitmask.png">
 <meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-03/sys_pgaccess.png">
-<meta property="og:image" content="https://acmicpc.top/img/6.S081/Lab-03/grade.png">
 <meta property="article:published_time" content="2024-02-28T10:20:32.000Z">
 <meta property="article:modified_time" content="2024-09-03T12:22:56.000Z">
 <meta property="article:author" content="江欣婷">
@@ -313,121 +311,156 @@
             
               <div class="markdown-body">
                 
-                <h1 id="lab3-page-table"><a href="#lab3-page-table" class="headerlink" title="lab3 - page table"></a>lab3 - page table</h1><h2 id="前置准备"><a href="#前置准备" class="headerlink" title="前置准备"></a>前置准备</h2><p>主要内容为熟悉页表遍历以及地址转换。</p>
-<p>根据<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2021/schedule.html">课程官网</a>的要求，需要阅读完教材的第三章$Page \space tables$。并且读懂下列源代码：<code>kernel/memlayout.h</code>, <code>kernel/vm.c</code>, <code>kernel/kalloc.c</code>, <code>kernel/riscv.h</code>, <code>user/exec.c</code>。</p>
-<p>相关笔记参考: <a target="_blank" rel="noopener" href="https://gejxd.github.io/2024/02/27/MIT-6.S081-lab03%20Notes/">lecture 3 Notes</a></p>
-<p>将<code>syscall</code>分支所有内容都上传仓库后，执行下列命令来切换分支</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">git fetch<br>git checkout pgtbl<br>make clean<br></code></pre></td></tr></table></figure>
-
+                <h1 id="lab3---page-table">lab3 - page table</h1>
+<h2 id="前置准备">前置准备</h2>
+<p>主要内容为熟悉页表遍历以及地址转换。</p>
+<p>根据<a
+target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2021/schedule.html">课程官网</a>的要求，需要阅读完教材的第三章<span
+class="math inline">\(Page \space
+tables\)</span>。并且读懂下列源代码：<code>kernel/memlayout.h</code>,
+<code>kernel/vm.c</code>, <code>kernel/kalloc.c</code>,
+<code>kernel/riscv.h</code>, <code>user/exec.c</code>。</p>
+<p>相关笔记参考: <a
+target="_blank" rel="noopener" href="https://gejxd.github.io/2024/02/27/MIT-6.S081-lab03%20Notes/">lecture
+3 Notes</a></p>
+<p>将<code>syscall</code>分支所有内容都上传仓库后，执行下列命令来切换分支
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">git fetch<br>git checkout pgtbl<br>make clean<br></code></pre></td></tr></table></figure></p>
 <p>此外，新建一个<code>pgtbl_dev</code>分支来进行实际实验。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">git checkout -b pgtbl_dev<br></code></pre></td></tr></table></figure>
-
-<p>在<code>pgtbl_dev</code>中每通过一个作业的测试，提交（git commit）你的代码，并将所做的修改合并（git merge）到util中，然后提交（git push）到github。</p>
+<p>在<code>pgtbl_dev</code>中每通过一个作业的测试，提交（git
+commit）你的代码，并将所做的修改合并（git merge）到util中，然后提交（git
+push）到github。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">git add .<br>git commit -m <span class="hljs-string">&quot;xxxxxxxx&quot;</span><br>git checkout pgtbl<br>git merge pgtbl_dev<br>git push github pgtbl:pgtbl<br></code></pre></td></tr></table></figure>
-
-<h2 id="Speed-up-system-calls-easy"><a href="#Speed-up-system-calls-easy" class="headerlink" title="Speed up system calls (easy)"></a>Speed up system calls (easy)</h2><h3 id="Statement"><a href="#Statement" class="headerlink" title="Statement"></a>Statement</h3><p>在部分操作系统中，会使用用户空间和内核空间之间一块只读的共享内存来进行特定数据的共享，以此来达到加速特定的系统调用的目的，这样就消除了与内核交互产生的开销。在本部分中，我们将实现对<code>getpid()</code>系统调用的优化。</p>
+<h2 id="speed-up-system-calls-easy">Speed up system calls (easy)</h2>
+<h3 id="statement">Statement</h3>
+<p>在部分操作系统中，会使用用户空间和内核空间之间一块只读的共享内存来进行特定数据的共享，以此来达到加速特定的系统调用的目的，这样就消除了与内核交互产生的开销。在本部分中，我们将实现对<code>getpid()</code>系统调用的优化。</p>
 <blockquote>
 <p>当一个进程被创建时，映射一块只读的页面在<code>USYSCALL</code>(一个虚拟地址，定义在<code>kernel/memlayout.h</code>)。在该内存页上我们需要存储一个叫<code>struct usyscall</code>的结构体(同样定义在<code>kernel/memlayout.h</code>)，将其初始化为当前进程的<code>PID</code>。</p>
 </blockquote>
-<h3 id="Hints"><a href="#Hints" class="headerlink" title="Hints"></a>Hints</h3><ul>
+<h3 id="hints">Hints</h3>
+<ul>
 <li>可以在<code>kernel/proc.c</code>中的<code>proc_pagetable</code>中处理内存映射问题。</li>
 <li>注意处理访问标志位使得内存页对用户空间来说是只读的。</li>
 <li><code>mappages()</code>在该实验中会十分有用。</li>
 <li>不要忘记在<code>allocproc()</code>中分配和初始化<code>usyscall</code>。</li>
 <li>确保在<code>freeproc()</code>中释放内存页。</li>
 </ul>
-<h3 id="Analysis-Solution"><a href="#Analysis-Solution" class="headerlink" title="Analysis &amp; Solution"></a>Analysis &amp; Solution</h3><p>先看看<code>proc_pagetable()</code>，可以看到就是用<code>mappages()</code>来将虚拟地址映射到物理地址。权限只需要设置<code>PTE_R</code>保证能读取，<code>PTE_U</code>保证用户内存能访问即可。</p>
-<p>然后看一眼<code>allocproc()</code>, 就是调用<code>kalloc()</code>来个<code>struct proc</code>里面的各个部分分配空间。</p>
-<p>最后在看看<code>freeproc()</code>, 对应把<code>allocproc</code>分配的东西，该free的free，该置0的置0。</p>
+<h3 id="analysis-solution">Analysis &amp; Solution</h3>
+<p>先看看<code>proc_pagetable()</code>，可以看到就是用<code>mappages()</code>来将虚拟地址映射到物理地址。权限只需要设置<code>PTE_R</code>保证能读取，<code>PTE_U</code>保证用户内存能访问即可。</p>
+<p>然后看一眼<code>allocproc()</code>,
+就是调用<code>kalloc()</code>来个<code>struct proc</code>里面的各个部分分配空间。</p>
+<p>最后在看看<code>freeproc()</code>,
+对应把<code>allocproc</code>分配的东西，该free的free，该置0的置0。</p>
 <p>所以我们要做的就很明显了：</p>
 <ul>
 <li>创建进程时，多存储一个<code>struct usyscall</code>。</li>
 <li>创建进程页面时，将<code>struct usyscall</code>映射到<code>USYSCALL</code>。</li>
 <li>销毁进程时，将<code>struct usyscall</code>释放，并且清空页表。</li>
 </ul>
-<p>在<code>struct proc</code>添加<code>struct usyscall</code>成员变量。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> &#123;</span><br>    <span class="hljs-comment">// 省略其他</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span>* <span class="hljs-title">usyscall_info</span>;</span><br>&#125;<br></code></pre></td></tr></table></figure>
-
+<p>在<code>struct proc</code>添加<code>struct usyscall</code>成员变量。
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> &#123;</span><br>    <span class="hljs-comment">// 省略其他</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span>* <span class="hljs-title">usyscall_info</span>;</span><br>&#125;<br></code></pre></td></tr></table></figure></p>
 <p>然后在<code>proc_pagetable()</code>中添加映射。</p>
 <p>NOTE：<code>uvmumap</code>要把上两次map的页面也删除。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C">proc_pagetable() &#123;<br>    <span class="hljs-comment">// 省略其他</span><br>    <span class="hljs-keyword">if</span> (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p-&gt;usyscall), PTE_R | PTR_U) &lt; ) &#123;<br>        uvmunmap(pagetable, TRAMPOLINE, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmunmap(pagetable, TRAPFRAME, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmfree(pagetable, <span class="hljs-number">0</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后在<code>allocproc</code>中分配内存，并且初始化。</p>
 <p>NOTE：usyscall的分配要在<code>p-&gt;pagetable</code>分配前实现。不然页表会映射为空。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc* <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-comment">// 省略其他</span><br>    <span class="hljs-keyword">if</span> ((p-&gt;usyscall_info = (<span class="hljs-keyword">struct</span> usyscall*)kalloc()) == <span class="hljs-number">0</span>) &#123;<br>        freeproc(p);<br>        release(&amp;p-&gt;lock);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    p-&gt;usyspage-&gt;pid = p-&gt;pid;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>最后在<code>freeproc</code>中释放内存。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">freeproc</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc *)</span> &#123;<br>    <span class="hljs-comment">// 省略其他</span><br>    <span class="hljs-keyword">if</span> (p-&gt;usyscall_info) kfree((<span class="hljs-type">void</span>*)p-&gt;usyscall_info);<br>    p-&gt;usyscall_info = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>然后运行会喜提一个<code>panic: freewalk leaf</code>。翻一下<code>freewalk</code>这个函数，发现如果PTE_V没有设置，或者pte为空，就会有这个panic。<br><img src="/img/6.S081/Lab-03/panic.png" srcset="/img/loading.gif" lazyload></p>
+<p>最后在<code>freeproc</code>中释放内存。 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">freeproc</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc *)</span> &#123;<br>    <span class="hljs-comment">// 省略其他</span><br>    <span class="hljs-keyword">if</span> (p-&gt;usyscall_info) kfree((<span class="hljs-type">void</span>*)p-&gt;usyscall_info);<br>    p-&gt;usyscall_info = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>然后运行会喜提一个<code>panic: freewalk leaf</code>。翻一下<code>freewalk</code>这个函数，发现如果PTE_V没有设置，或者pte为空，就会有这个panic。
+<img src="/img/6.S081/Lab-03/panic.png" srcset="/img/loading.gif" lazyload /></p>
 <p>刚才只有<code>mappages</code>中修改到了页表。查看<code>mappages</code>函数的代码。由于并没有提示<code>panic：mappages remap</code>，说明PTE_V被正常设置。那问题只能是<code>freewalk</code>中的<code>pte</code>为空了。</p>
-<p>一通检查，发现页表<code>freeproc</code>中的<code>uvmfree</code>只是把所有项都置为0，并不清空映射，所以映射出来就为空了。然后找到<code>proc_freepagetable()</code>这个函数(在<code>kernel/proc.h</code>中)，删除<code>USYSCALL</code>的映射即可。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">proc_freepagetable</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uint64 sz)</span> &#123;<br>    <span class="hljs-comment">// 省略其他</span><br>    uvmunmap(pagetable, USYSCALL, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p><img src="/img/6.S081/Lab-03/ugetpid.png" srcset="/img/loading.gif" lazyload></p>
-<h2 id="Print-a-page-table-easy"><a href="#Print-a-page-table-easy" class="headerlink" title="Print a page table (easy)"></a>Print a page table (easy)</h2><h3 id="Statement-1"><a href="#Statement-1" class="headerlink" title="Statement"></a>Statement</h3><p>在本部分中，我们需要将 RISC-V 的页表可视化，也就是实现一个页表内容的打印功能，作为后续调试的辅助工具。</p>
+<p>一通检查，发现页表<code>freeproc</code>中的<code>uvmfree</code>只是把所有项都置为0，并不清空映射，所以映射出来就为空了。然后找到<code>proc_freepagetable()</code>这个函数(在<code>kernel/proc.h</code>中)，删除<code>USYSCALL</code>的映射即可。
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">proc_freepagetable</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uint64 sz)</span> &#123;<br>    <span class="hljs-comment">// 省略其他</span><br>    uvmunmap(pagetable, USYSCALL, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p><img src="/img/6.S081/Lab-03/ugetpid.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="print-a-page-table-easy">Print a page table (easy)</h2>
+<h3 id="statement-1">Statement</h3>
+<p>在本部分中，我们需要将 RISC-V
+的页表可视化，也就是实现一个页表内容的打印功能，作为后续调试的辅助工具。</p>
 <blockquote>
 <p>我们需要定义一个<code>vmprint</code>函数。该函数应该有一个参数<code>pagetable_t</code>，作为要可视化的页表，然后按下面的格式打印这个页表的信息。添加一行<code>if (p-&gt;pid == 1) vmprimt(p-&gt;pagetable)</code>在<code>exec.c</code>中，在返回<code>argc</code>之前输出第一个进程的页面信息。</p>
 </blockquote>
 <p>当你启动<code>xv6</code>的时候，<code>exec</code>完成内核加载时你应该会看到下面的信息：</p>
 <figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">page table 0x0000000087f6e000<br> <span class="hljs-string">..0</span>: pte 0x0000000021fda801 pa 0x0000000087f6a000<br> <span class="hljs-string">..</span> <span class="hljs-string">..0</span>: pte 0x0000000021fda401 pa 0x0000000087f69000<br> <span class="hljs-string">..</span> <span class="hljs-string">..</span> <span class="hljs-string">..0</span>: pte 0x0000000021fdac1f pa 0x0000000087f6b000<br> <span class="hljs-string">..</span> <span class="hljs-string">..</span> <span class="hljs-string">..1</span>: pte 0x0000000021fda00f pa 0x0000000087f68000<br> <span class="hljs-string">..</span> <span class="hljs-string">..</span> <span class="hljs-string">..2</span>: pte 0x0000000021fd9c1f pa 0x0000000087f67000<br> <span class="hljs-string">..255</span>: pte 0x0000000021fdb401 pa 0x0000000087f6d000<br> <span class="hljs-string">..</span> <span class="hljs-string">..511</span>: pte 0x0000000021fdb001 pa 0x0000000087f6c000<br> <span class="hljs-string">..</span> <span class="hljs-string">..</span> <span class="hljs-string">..509</span>: pte 0x0000000021fdd813 pa 0x0000000087f76000<br> <span class="hljs-string">..</span> <span class="hljs-string">..</span> <span class="hljs-string">..510</span>: pte 0x0000000021fddc07 pa 0x0000000087f77000<br> <span class="hljs-string">..</span> <span class="hljs-string">..</span> <span class="hljs-string">..511</span>: pte 0x0000000020001c0b pa 0x0000000080007000<br></code></pre></td></tr></table></figure>
-
-<p>第一行表示了 <code>vmprint</code> 传入的参数，也就是页表入口的地址。接下来的每一行都是 PTE，以及 PTE 下可能存在的下级页表（学过算法的都应该看出来了这是一个递归）。我们用<code>..</code> 来表示这个 PTE 的深度，最开始打印的数字是这个 PTE 在一个 4KB 内存页（共 512 个 PTE）的编号，接下来会打印 PTE 的具体数值。</p>
-<h3 id="Hints-1"><a href="#Hints-1" class="headerlink" title="Hints"></a>Hints</h3><ul>
+<p>第一行表示了 <code>vmprint</code>
+传入的参数，也就是页表入口的地址。接下来的每一行都是 PTE，以及 PTE
+下可能存在的下级页表（学过算法的都应该看出来了这是一个递归）。我们用<code>..</code>
+来表示这个 PTE 的深度，最开始打印的数字是这个 PTE 在一个 4KB 内存页（共
+512 个 PTE）的编号，接下来会打印 PTE 的具体数值。</p>
+<h3 id="hints-1">Hints</h3>
+<ul>
 <li>可以把<code>vmprint</code>实现在<code>kernel/vm.c</code>文件里面。</li>
 <li>记得使用<code>kernel/riscv.h</code>中的宏定义，包括但不限于<code>PTE2PA</code>等，来方便你转换PTE到物理地址。</li>
 <li>如果你无从下手，记得阅读<code>freewalk</code>函数。</li>
 <li>在<code>kernel/defs.h</code>中添加<code>vmprint</code>的原型，一遍在<code>exec.c</code>中正确调用。</li>
 <li>在<code>print</code>中使用<code>%p</code>来打印完整的64位地址信息。</li>
 </ul>
-<h3 id="Analysis-Solution-1"><a href="#Analysis-Solution-1" class="headerlink" title="Analysis &amp; Solution"></a>Analysis &amp; Solution</h3><p>提示里面说了<code>freewalk</code>函数很重要，所以外面先读一下这个函数。</p>
+<h3 id="analysis-solution-1">Analysis &amp; Solution</h3>
+<p>提示里面说了<code>freewalk</code>函数很重要，所以外面先读一下这个函数。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Recursively free page-table pages.</span><br><span class="hljs-comment">// All leaf mappings must already have been removed.</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">freewalk</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable)</span> &#123;<br>    <span class="hljs-comment">// there are 2^9 = 512 PTEs in a page table.</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">512</span>; i++) &#123;<br>        <span class="hljs-type">pte_t</span> pte = pagetable[i];<br>        <span class="hljs-keyword">if</span> ((pte &amp; PTE_V) &amp;&amp; (pte &amp; (PTE_R | PTE_W | PTE_X)) == <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-comment">// this PTE points to a lower-level page table.</span><br>            uint64 child = PTE2PA(pte);<br>            freewalk((<span class="hljs-type">pagetable_t</span>)child);<br>            pagetable[i] = <span class="hljs-number">0</span>;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (pte &amp; PTE_V) &#123;<br>            panic(<span class="hljs-string">&quot;freewalk: leaf&quot;</span>);<br>        &#125;<br>    &#125;<br>    kfree((<span class="hljs-type">void</span> *)pagetable);<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>首先传入了一个页表，并且遍历里面的所有项。如果<code>pte</code>不为空并且<code>PTE_V</code>标志位为1，说明这项页面存在，并且映射了一个虚拟内存到物理内存。如果<code>PTE_R</code>、<code>PTE_R</code>、<code>PRE_X</code>都为0，说明这个页面为高级页表，读取下一级页表的地址，递归调用<code>freewalk</code>来遍历。</p>
 <p>emmmm，然后就没什么好说的了，照着上面加点输入输出就可以。</p>
 <p><code>vmprint</code>:</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// lab3 - exercise 2</span><br><span class="hljs-comment">// print a page table</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, <span class="hljs-type">int</span> depth)</span> &#123;<br>    <span class="hljs-keyword">if</span> (depth == <span class="hljs-number">1</span>)<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;page table %p\n&quot;</span>, pagetable);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>;i &lt; <span class="hljs-number">512</span>;i ++) &#123;<br>        <span class="hljs-type">pte_t</span> pte = pagetable[i];<br>        <span class="hljs-comment">// printf(&quot;%d: pte %p pa %p\n&quot;, i, pte, PTE2PA(pte));</span><br>        <span class="hljs-keyword">if</span> (pte &amp; PTE_V) &#123;<br>             <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">1</span>;j &lt;= depth;j ++)<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;..%s&quot;</span>, j == depth ? <span class="hljs-string">&quot;&quot;</span> : <span class="hljs-string">&quot; &quot;</span>);<br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: pte %p pa %p\n&quot;</span>, i, pte, PTE2PA(pte));<br>            <span class="hljs-keyword">if</span> ((pte &amp; (PTE_R | PTE_W | PTE_X)) == <span class="hljs-number">0</span>) &#123;<br>                <span class="hljs-type">pagetable_t</span> child = (<span class="hljs-type">pagetable_t</span>)PTE2PA(pte);<br>                vmprint((<span class="hljs-type">pagetable_t</span>)child, depth + <span class="hljs-number">1</span>);<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后在<code>kernel/defs.h</code>中添加原型：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// vm.c</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable)</span>;<br></code></pre></td></tr></table></figure>
-
 <p>在<code>exec.c</code>的<code>return</code>前插入代码：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">if</span>(p-&gt;pid==<span class="hljs-number">1</span>) <br>    vmprint(p-&gt;pagetable);<br><span class="hljs-keyword">return</span> argc; <span class="hljs-comment">// this ends up in a0, the first argument to main(argc, argv)</span><br></code></pre></td></tr></table></figure>
-
-<p><img src="/img/6.S081/Lab-03/print.png" srcset="/img/loading.gif" lazyload></p>
-<h2 id="Detecting-which-pages-have-been-accessed"><a href="#Detecting-which-pages-have-been-accessed" class="headerlink" title="Detecting which pages have been accessed"></a>Detecting which pages have been accessed</h2><h3 id="Statement-2"><a href="#Statement-2" class="headerlink" title="Statement"></a>Statement</h3><p>一些垃圾回收器(一种自动内存管理的形式)，可以从已经被访问的内存(写或读)中获得信息。在这部分实验，你将要给xv6内核添加一个新特性，通过检查RISC-V页表中的访问页来给用户空间传递这一信息。每当RISC-V硬件解决TLB未命中问题的时候，都会在PTE的标志位中标记对应位。(即不用考虑TLB和页表潜在不同步问题)。</p>
+<p><img src="/img/6.S081/Lab-03/print.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="detecting-which-pages-have-been-accessed">Detecting which pages
+have been accessed</h2>
+<h3 id="statement-2">Statement</h3>
+<p>一些垃圾回收器(一种自动内存管理的形式)，可以从已经被访问的内存(写或读)中获得信息。在这部分实验，你将要给xv6内核添加一个新特性，通过检查RISC-V页表中的访问页来给用户空间传递这一信息。每当RISC-V硬件解决TLB未命中问题的时候，都会在PTE的标志位中标记对应位。(即不用考虑TLB和页表潜在不同步问题)。</p>
 <blockquote>
-<p>你的目标是实现<code>pgaccess()</code>，一个用于报告当前进程哪些页面已被访问过的系统调用。它需要3个参数。首先，它需要第一个要检查的用户页面的起始虚拟地址。其次，它接受要检查的页面数。最后，它需要一个缓冲区的用户地址，以便将结果存储到位掩码（一种数据结构，每页使用一位，其中第一页对应的是最小有效位）中。如果在运行 <code>pgtbltest</code> 时通过了 <code>pgaccess</code> 测试用例，这部分实验将获得满分。</p>
+<p>你的目标是实现<code>pgaccess()</code>，一个用于报告当前进程哪些页面已被访问过的系统调用。它需要3个参数。首先，它需要第一个要检查的用户页面的起始虚拟地址。其次，它接受要检查的页面数。最后，它需要一个缓冲区的用户地址，以便将结果存储到位掩码（一种数据结构，每页使用一位，其中第一页对应的是最小有效位）中。如果在运行
+<code>pgtbltest</code> 时通过了 <code>pgaccess</code>
+测试用例，这部分实验将获得满分。</p>
 </blockquote>
-<h3 id="Hints-2"><a href="#Hints-2" class="headerlink" title="Hints"></a>Hints</h3><ul>
-<li>首先在 <code>kernel/sysproc.c</code> 中实现 <code>sys_pgaccess()</code>。</li>
-<li>需要使用 <code>argaddr()</code> 和 <code>argint()</code> 解析参数。</li>
-<li>对于输出位掩码，在内核中存储一个临时缓冲区并在填入正确的位后将其拷贝给用户（通过 <code>copyout()</code>）会更容易一些</li>
-<li><code>kernel/vm.c</code> 中的 <code>walk()</code> 对于找到正确的 PTE 非常有用。</li>
-<li>需要在 <code>kernel/riscv.h</code> 中定义访问位 <code>PTE_A</code>。请查阅 RISC-V 手册确定其值。</li>
-<li>在检查 <code>PTE_A</code> 是否被设置后，请务必将其清除。否则，将无法确定上次调用 <code>pgaccess()</code> 后是否访问过页面（即该位将永远被设置）。</li>
+<h3 id="hints-2">Hints</h3>
+<ul>
+<li>首先在 <code>kernel/sysproc.c</code> 中实现
+<code>sys_pgaccess()</code>。</li>
+<li>需要使用 <code>argaddr()</code> 和 <code>argint()</code>
+解析参数。</li>
+<li>对于输出位掩码，在内核中存储一个临时缓冲区并在填入正确的位后将其拷贝给用户（通过
+<code>copyout()</code>）会更容易一些</li>
+<li><code>kernel/vm.c</code> 中的 <code>walk()</code> 对于找到正确的 PTE
+非常有用。</li>
+<li>需要在 <code>kernel/riscv.h</code> 中定义访问位
+<code>PTE_A</code>。请查阅 RISC-V 手册确定其值。</li>
+<li>在检查 <code>PTE_A</code>
+是否被设置后，请务必将其清除。否则，将无法确定上次调用
+<code>pgaccess()</code> 后是否访问过页面（即该位将永远被设置）。</li>
 <li><code>vmprint()</code> 可能会在调试页表时派上用场。</li>
 </ul>
-<h3 id="Analysis-Solution-2"><a href="#Analysis-Solution-2" class="headerlink" title="Analysis &amp; Solution"></a>Analysis &amp; Solution</h3><p>大概意思可能和<code>cache</code>中的脏位差不多。检测到上一次调用<code>sys_pgaccess()</code>这段时间内，哪些页表项被访问过。可能完整的 UNIX 系统中会用这个信息来实现TLB和页表的同步。</p>
+<h3 id="analysis-solution-2">Analysis &amp; Solution</h3>
+<p>大概意思可能和<code>cache</code>中的脏位差不多。检测到上一次调用<code>sys_pgaccess()</code>这段时间内，哪些页表项被访问过。可能完整的
+UNIX 系统中会用这个信息来实现TLB和页表的同步。</p>
 <p>需要注意的是，PTE_A位是由RISC-V硬件来维护的，在xv6中则是由<code>qemu</code>模拟器来负责维护，我们不用考虑什么时候将PTE_A置为1。</p>
-<p>还是教材上这张图, RISC-V硬件页表的标记位：<br><img src="/img/6.S081/Lab-03/bitmask.png" srcset="/img/loading.gif" lazyload></p>
-<p>可以看到 $access$ 标志位是第 $6$ 位(从 $0$ 数起，从左到右)。所以在 <code>kernel/riscv.h</code>下面，添加一位PTE_A的定义。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_V (1L &lt;&lt; 0)   <span class="hljs-comment">// valid</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_R (1L &lt;&lt; 1)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_W (1L &lt;&lt; 2)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_X (1L &lt;&lt; 3)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_U (1L <span class="hljs-string">&lt;&lt; 4)   // 1 -&gt;</span> user can access</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_A (1L &lt;&lt; 6)   <span class="hljs-comment">// Lab pgtbl: Whether it has been visited</span></span><br></code></pre></td></tr></table></figure>
-
-<p>按照lab-2的内容看看系统调用需要添加的东西，真良心全添加好了。所以我们只用考虑怎么来实现。<br>在<code>kernel/sysproc.c</code>中</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">sys_pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-comment">// lab pgtbl: your code here.</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
-
-<p>我们用一个 $64$ 位的整数来当作<code>bitmask</code>，一位表示一张页表，所以只能访问 $64$ 张页表。即参数里的<code>pgnums</code>不能超过 $64$。然后就是从用户进程页表中的<code>va</code>开始，往下访问<code>pgnums</code>张页表项，如果当前PTE的access位为1，对应的bitmask位也置为1。由于<code>sys_pgaccess()</code>也会访问页表，这个操作也会将PTE_A置为1，所以在标记完<code>bitmask</code>之后，需要将PTE_A重置。</p>
+<p>还是教材上这张图, RISC-V硬件页表的标记位： <img
+src="/img/6.S081/Lab-03/bitmask.png" srcset="/img/loading.gif" lazyload /></p>
+<p>可以看到 <span class="math inline">\(access\)</span> 标志位是第 <span
+class="math inline">\(6\)</span> 位(从 <span
+class="math inline">\(0\)</span> 数起，从左到右)。所以在
+<code>kernel/riscv.h</code>下面，添加一位PTE_A的定义。
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_V (1L &lt;&lt; 0)   <span class="hljs-comment">// valid</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_R (1L &lt;&lt; 1)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_W (1L &lt;&lt; 2)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_X (1L &lt;&lt; 3)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_U (1L <span class="hljs-string">&lt;&lt; 4)   // 1 -&gt;</span> user can access</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_A (1L &lt;&lt; 6)   <span class="hljs-comment">// Lab pgtbl: Whether it has been visited</span></span><br></code></pre></td></tr></table></figure></p>
+<p>按照lab-2的内容看看系统调用需要添加的东西，真良心全添加好了。所以我们只用考虑怎么来实现。
+在<code>kernel/sysproc.c</code>中 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">sys_pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-comment">// lab pgtbl: your code here.</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure></p>
+<p>我们用一个 <span class="math inline">\(64\)</span>
+位的整数来当作<code>bitmask</code>，一位表示一张页表，所以只能访问 <span
+class="math inline">\(64\)</span>
+张页表。即参数里的<code>pgnums</code>不能超过 <span
+class="math inline">\(64\)</span>。然后就是从用户进程页表中的<code>va</code>开始，往下访问<code>pgnums</code>张页表项，如果当前PTE的access位为1，对应的bitmask位也置为1。由于<code>sys_pgaccess()</code>也会访问页表，这个操作也会将PTE_A置为1，所以在标记完<code>bitmask</code>之后，需要将PTE_A重置。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">sys_pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-comment">// virtual address</span><br>    uint64 va;<br>    <span class="hljs-keyword">if</span> (argaddr(<span class="hljs-number">0</span>, &amp;va) &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// the number of page table to check.</span><br>    <span class="hljs-type">int</span> pgnums;<br>    <span class="hljs-keyword">if</span> (argint(<span class="hljs-number">1</span>, &amp;pgnums) &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// user virtual address</span><br>    uint64 ua;<br>    <span class="hljs-keyword">if</span> (argaddr(<span class="hljs-number">2</span>, &amp;ua) &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br><br>    uint64 bitmask = <span class="hljs-number">0</span>;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span>* <span class="hljs-title">p</span> =</span> myproc();<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; pgnums; i++) &#123;<br>        <span class="hljs-keyword">if</span> (va &gt;= MAXVA) <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>        <span class="hljs-type">pte_t</span> *pte = walk(p-&gt;pagetable, va, <span class="hljs-number">0</span>);<br>        <span class="hljs-keyword">if</span> ((*pte &amp; PTE_V) &amp;&amp; (*pte &amp; PTE_A)) &#123;<br>            bitmask |= (<span class="hljs-number">1</span> &lt;&lt; i);<br>            *pte ^= PTE_A;<br>        &#125;<br>        va += PGSIZE;<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (copyout(p-&gt;pagetable, ua, (<span class="hljs-type">char</span>*)&amp;bitmask, <span class="hljs-keyword">sizeof</span>(bitmask)) &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后报错说<code>walk()</code>没被定义，看一眼<code>kernel/defs.h</code>，发现没有<code>walk</code>函数原型，所以添加一个即可。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">copyinstr</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>, <span class="hljs-type">char</span>*, uint64, uint64)</span>;<br><span class="hljs-type">pte_t</span>* <span class="hljs-title function_">walk</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>, uint64, <span class="hljs-type">int</span>)</span>;<br></code></pre></td></tr></table></figure>
-
-<p><img src="/img/6.S081/Lab-03/sys_pgaccess.png" srcset="/img/loading.gif" lazyload></p>
-<h2 id="Submit-lab"><a href="#Submit-lab" class="headerlink" title="Submit lab"></a>Submit lab</h2><p>新建<code>time.txt</code>文件，输入一个整数表明完成所有实验的耗时。</p>
-<p>运行<code>make grade</code>。<br><img src="/img/6.S081/Lab-03/grade.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/6.S081/Lab-03/sys_pgaccess.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="submit-lab">Submit lab</h2>
+<p>新建<code>time.txt</code>文件，输入一个整数表明完成所有实验的耗时。</p>
+<p>运行<code>make grade</code>。 <img
+src="/img/6.S081/Lab-03/grade.png" srcset="/img/loading.gif" lazyload /></p>
 <p>这里<code>usertests</code>会评测所有xv6的函数，耗时较长，如果用虚拟机或低配置机器的同学可以修改<code>grade-lab-pgtbl</code>里面的<code>timeout</code>，不然还没评测完就给你来一个血红色的<code>FAIL</code>。</p>
-<p>运行<code>make handin</code>, 根据提示将<code>API KEY</code>填入，提交完成。</p>
+<p>运行<code>make handin</code>,
+根据提示将<code>API KEY</code>填入，提交完成。</p>
 
                 
               </div>
