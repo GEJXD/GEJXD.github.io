@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://acmicpc.top/2024/02/29/MIT-6.S081-lab04/</loc>
+    <lastmod>2026-01-22</lastmod>
+  </url>
+  <url>
     <loc>https://acmicpc.top/2026/01/23/write_a_c_compiler/Chapter2.3-Codegen/</loc>
     <lastmod>2026-01-22</lastmod>
   </url>
@@ -39,10 +43,6 @@
   <url>
     <loc>https://acmicpc.top/2024/02/29/MIT-6.S081-lab05%20Notes/</loc>
     <lastmod>2024-09-05</lastmod>
-  </url>
-  <url>
-    <loc>https://acmicpc.top/2024/02/29/MIT-6.S081-lab04/</loc>
-    <lastmod>2024-09-04</lastmod>
   </url>
   <url>
     <loc>https://acmicpc.top/2024/02/28/MIT-6.S081-lab03/</loc>
