@@ -21,24 +21,28 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="当视图访问 $PTE_V$ 为 $0$ 的页表, 或用户尝试访问 $PTE_U$ 为 $0$ &#x2F; 内核尝试访问 $PTE_U 为 $1$ 的页表， 或者是其他违反了 $PTE_R$ 或 $PTE_W$ 等 $flag$ 的页表时就会出现 $Page Faults$。 一共有三种 $Page Faults$:  $load \space page \space faults$: 当load">
+    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  在 Chapter 1 中我们实现了对 return 语句和 constant 的支持。这章将会实现对一元运算符(unary operator)的支持。具体的说，是 算数负号运算符 - 和 按位取反运算符 ~ 的支持。同时还引入 IR 来化简生成汇编的难度。 Introduce考">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MIT 6.S081 第五章笔记 | 页面故障">
-<meta property="og:url" content="https://acmicpc.top/2024/02/29/MIT-6.S081-lab05%20Notes/index.html">
+<meta property="og:title" content="从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack">
+<meta property="og:url" content="https://acmicpc.top/2026/01/22/write_a_c_compiler/Chapter2.0-Stack/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="当视图访问 $PTE_V$ 为 $0$ 的页表, 或用户尝试访问 $PTE_U$ 为 $0$ &#x2F; 内核尝试访问 $PTE_U 为 $1$ 的页表， 或者是其他违反了 $PTE_R$ 或 $PTE_W$ 等 $flag$ 的页表时就会出现 $Page Faults$。 一共有三种 $Page Faults$:  $load \space page \space faults$: 当load">
+<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  在 Chapter 1 中我们实现了对 return 语句和 constant 的支持。这章将会实现对一元运算符(unary operator)的支持。具体的说，是 算数负号运算符 - 和 按位取反运算符 ~ 的支持。同时还引入 IR 来化简生成汇编的难度。 Introduce考">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-02-28T19:20:32.000Z">
-<meta property="article:modified_time" content="2024-09-05T06:35:04.000Z">
+<meta property="og:image" content="https://acmicpc.top/img/write_a_c_compiler/Chapter_2/2026-01-22_16_50_36.png">
+<meta property="og:image" content="https://acmicpc.top/img/write_a_c_compiler/Chapter_2/2026-01-22_17_02_04.png">
+<meta property="og:image" content="https://acmicpc.top/img/write_a_c_compiler/Chapter_2/2026-01-22_17_08_37.png">
+<meta property="article:published_time" content="2026-01-22T07:07:25.000Z">
+<meta property="article:modified_time" content="2026-01-22T09:14:06.831Z">
 <meta property="article:author" content="江欣婷">
-<meta property="article:tag" content="6.S081">
+<meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://acmicpc.top/img/write_a_c_compiler/Chapter_2/2026-01-22_16_50_36.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>MIT 6.S081 第五章笔记 | 页面故障 - 江欣婷&#39;s博客</title>
+  <title>从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack - 江欣婷&#39;s博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -216,7 +220,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="MIT 6.S081 第五章笔记 | 页面故障"></span>
+            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack"></span>
           
         </div>
 
@@ -232,8 +236,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-02-29 03:20" pubdate>
-          2024年2月29日 凌晨
+        <time datetime="2026-01-22 15:07" pubdate>
+          2026年1月22日 下午
         </time>
       </span>
     
@@ -244,7 +248,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          611 字
+          1.3k 字
         
       </span>
     
@@ -255,7 +259,7 @@
         
         
         
-          6 分钟
+          12 分钟
         
       </span>
     
@@ -301,26 +305,68 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">MIT 6.S081 第五章笔记 | 页面故障</h1>
+            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack</h1>
             
             
               <div class="markdown-body">
                 
-                <p>当视图访问 $PTE_V$ 为 $0$ 的页表, 或用户尝试访问 $PTE_U$ 为 $0$ &#x2F; 内核尝试访问 $PTE_U 为 $1$ 的页表， 或者是其他违反了 $PTE_R$ 或 $PTE_W$ 等 $flag$ 的页表时就会出现 $Page Faults$。</p>
-<p>一共有三种 $Page Faults$:</p>
-<ol>
-<li>$load \space page \space faults$: 当<code>load</code>指令无法解析虚拟地址时发生。</li>
-<li>$store \space page \space faults$: 当<code>store</code>指令无法解析虚拟地址时发生。</li>
-<li>$instructions \space page \space faults$: 当无法解析一条指令所在的虚拟地址时发生。</li>
-</ol>
-<p>$page \space faults$ 种类的代码存放在<code>scause</code>寄存器中，无法翻译的地址存放在<code>stval</code>寄存器中。</p>
-<p>在xv6中对于 $exception$ 一律都会将这个进程kill掉，但是实际上可以结合$page \space faults$ 实现一些功能。</p>
-<ol>
-<li>可以实现 $\textbf{copy-on-write} \space \textbf{fork}$。在<code>fork()</code>时，一般都是将父进程的所有$user \space memory$ 复制到子进程中，但是<code>fork</code>之后一般会直接进行<code>exec</code>，这就会导致复制过来的 $user \space memory$ 又被放弃掉。因此改进的思路是：子进程和父进程共享一个物理内存，但是mapping时将PTE_W置零，只有当子进程或者父进程的其中一个进程需要向这个地址写入时产生page fault，此时才会进行copy。</li>
-<li>可以实现 $\textbf{lazy} \space \testbf{allocation}$。旧的<code>sbrk()</code>申请分配内存，但是申请的这些内存进程很可能不会全部用到，因此改进方案为：当进程调用<code>sbrk()</code>时，将修改<code>p-&gt;sz</code>，但是并不实际分配内存，并且将PTE_V置0。当在试图访问这些新的地址时发生page fault再进行物理内存的分配。</li>
-<li>$\textbf{paging} \space \textbf{from} \space \textbf{disk}$：当内存没有足够的物理空间时，可以先将数据存储在其他的存储介质（比如硬盘）上，将该地址的PTE设置为$invalid$，使其成为一个驱逐页($evicted page$)。当需要读或者写这个PTE时，产生Page fault，然后在内存上分配一个物理地址，将这个硬盘上的evicted page的内容写入到该内存上，设置PTE为valid并且引用到这个内存物理地址。</li>
-</ol>
-<p>这两节没有什么新东西，主要就是结合前面三章的内容灵活应用，讲解一些操作系统的优化。更多在于理解为什么现代操作系统要这么设计(一个虚拟内存玩出花来了属于是)。</p>
+                <blockquote>
+<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a C Compiler</em></p>
+</blockquote>
+<p>在 Chapter 1 中我们实现了对 <code>return</code> 语句和 <code>constant</code> 的支持。这章将会实现对一元运算符(unary operator)的支持。具体的说，是 算数负号运算符 <code>-</code> 和 按位取反运算符 <code>~</code> 的支持。同时还引入 IR 来化简生成汇编的难度。</p>
+<h2 id="Introduce"><a href="#Introduce" class="headerlink" title="Introduce"></a>Introduce</h2><p>考虑下列的 C 程序：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">return</span> ~(<span class="hljs-number">-2</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这份代码包含嵌套的表达式 <code>~(-2)</code>，每个表达式都包含一个一元运算符：Negation (<code>-</code>) 或 Complement (<code>~</code>)。下表列出了这俩运算符的语义。</p>
+<table>
+<thead>
+<tr>
+<th>运算符</th>
+<th>含义</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-</code></td>
+<td>算数取负</td>
+<td>-2 -&gt; 2</td>
+<td>整数取负</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>按位取反</td>
+<td>~(-2) -&gt; 1</td>
+<td>在补码系统中，~x &#x3D; -x &#x3D; 1</td>
+</tr>
+</tbody></table>
+<p>在本章结束后，我们的编译器应该生成如下汇编代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs asm">    .globl main<br>main:<br>    pushq    %rbp<br>    movq     %rsp, %rbp<br>    subq     $8, %rsp<br><br>    movl     $2, -4(%rbp)<br>    negl     -4(%rbp)<br><br>    movl     -4(%rbp), %r10d<br>    movl     %r10d, -8(%rbp)<br>    notl     -8(%rbp)<br><br>    movl     -8(%rbp), %eax<br>    movq     %rbp, %rsp<br>    popq     %rbp<br><br>    ret<br></code></pre></td></tr></table></figure>
+
+<p>现代编译器会进行一系列的优化，可能会直接在编译的时候计算出最终结果，所以汇编指令只有一条指令：<code>$movl $1, %rax</code>。目前我们不考虑优化。</p>
+<p>我们目前没有编写寄存器分配，所以临时变量都暂时存放在栈上。开始的 3 条指令被称为 <strong>函数序言(function prologue)</strong>，是值在调用开始和结束时，由编译器自动生成的一段机器代码，用于建立和保存调用上下文，为局部变量分配空间，确保函数能正确执行并安全返回。目前，它的作用为将 <code>%rbp</code> 的值压入栈中，并将栈顶的值 <code>%rsp</code> 复制给  <code>%rbp</code>，并分配 $8$ 字节的空间给新栈，用于存储局部变量。后续会有更详细的关于运行时栈的解释。<code>%rsp</code> 为 Stack Pointer Register，用于存储当前函数栈帧的栈顶元素地址。</p>
+<p>第一条 <code>movl</code> 语句将 立即数 $2$ 到一个内存地址中。<code>-4(%rbp)</code> 为寄存器寻址，表示地址为 $[rbp] - 4$ 的内存空间。<code>%rbp</code> 为 Base Pointer Register，一般用于保存当前函数栈帧的栈地地址，所以 <code>-4(%rbp)</code> 表示比 <code>%rbp</code> 小 4 的地址。之后 <code>negl</code> 指令将该地址中的值取负。</p>
+<p><code>mov</code> 指令的 源地址 <code>src</code> 和目的地址 <code>dst</code> 不能同时为内存，所以用 <code>%r10d</code> 来作为中转，通过两条 <code>mov</code> 指令将 <code>-4(%rbp)</code> 中的值转移到 <code>-8(%rbp)</code> 中。之后使用 <code>notl</code> 指令进行取反。</p>
+<p>末尾的 3 条指令被称为 <strong>函数尾声(function epilogue)</strong>，与函数序言对应，用于传递返回值，恢复现场，释放全局变量。</p>
+<p>在 System V ABI 中，函数栈帧的栈底指针为 <code>%rbp</code> 寄存器，函数栈帧的栈顶指针为 <code>%rsp</code>，函数的返回值通过 <code>%rax</code> 寄存器传递。</p>
+<h2 id="Runtime-Stack"><a href="#Runtime-Stack" class="headerlink" title="Runtime Stack"></a>Runtime Stack</h2><p>每个函数调用之后，编译器都会在内存中分配一块连续的地址空间，用于存储当前函数内的局部变量，临时计算结果等，这块空间被称为函数栈帧。所有函数调用的函数栈帧合起来被称为 运行时栈 (Runtime Stack)，也就是常说的栈区。</p>
+<p>函数栈帧方向向低地址增长：栈顶实际上是栈中最低的内存地址。所以我们才会使用 <code>%subq $8 %rsp</code> 来为栈分配 $8$ 字节的空间。同样，当我们向栈内 push 一个值的时候，<code>%rsp</code> 自动执行减操作。当执行 <code>pushq $3</code> 这样的指令的时候，实际执行了下面的操作：</p>
+<ul>
+<li>将 $3$ 放入栈顶的下一个空间。<code>q</code> 后缀表明 $3$ 的类型为 long long，占用 $8$ 字节的空间。</li>
+<li>将 <code>%rsp</code> 的值减 $8$。<code>%rsp</code> 值向的是栈顶元素的最低地址，即 $3$ 所占第一个字节。</li>
+</ul>
+<p><img src="/img/write_a_c_compiler/Chapter_2/2026-01-22_16_50_36.png" srcset="/img/loading.gif" lazyload></p>
+<p><code>popq src</code> 指令执行相反的操作：将 <code>%rsp</code> 所指的元素复制到 <code>src</code> 中，然后将 <code>rsp</code> 加 $8$。</p>
+<p>每当调用一个函数的时候，我们会通过 <code>pushq %rbp</code> 将上一个函数的栈底地址存入栈中。之后将栈顶地址 <code>%rsp</code> 复制给 <code>%rbp</code>，将当前栈顶设为新栈帧的基地址。此时，栈顶和栈底都是同一个位置，表明当前栈帧为空。之后通过 <code>subq</code> 指令将 <code>%rsp</code> 往下移动 $n$ 个字节。这样当前栈帧就有了 $n$ 个字节的可用空间，用于存储临时变量。这就是 function prologue 的实现原理。</p>
+<p><img src="/img/write_a_c_compiler/Chapter_2/2026-01-22_17_02_04.png" srcset="/img/loading.gif" lazyload></p>
+<p>function epilogue 也是同理，只不过执行相反的操作。</p>
+<ul>
+<li><code>movq %rbp, %rsp</code> 将 <code>%rsp</code> 重置为 <code>%rbp</code>, 恢复栈为空的状态。也可以使用 <code>addq $8, %rsp</code> 来实现同样的操作，但是加法运算慢于寄存器赋值运算。</li>
+<li><code>popq %rbp</code> 将刚开始压入栈顶的老 <code>%rbp</code> 值恢复，<code>%rsp</code> 自动加 $8$，这样就恢复到了调用前的状态。</li>
+</ul>
+<p><img src="/img/write_a_c_compiler/Chapter_2/2026-01-22_17_08_37.png" srcset="/img/loading.gif" lazyload></p>
+<p>C 语言中支持嵌套的表达式，但汇编语言中不支持。我们需要一系列的临时变量来存储这些中间值。正常来说，编译器会实现一套 <strong>寄存器分配算法</strong> 来管理和分配寄存器，但这部分过于复杂，目前所有运算都将在栈上运行。</p>
+<p>在解析 function_definition 的时候，我们需要顺带解析出需要多少局部变量，并自动生成 function prologue 和 funciton epilogue 为栈上分配空间。</p>
 
                 
               </div>
@@ -339,7 +385,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  <a href="/categories/compiler/" class="category-chain-item">compiler</a>
   
   
 
@@ -354,7 +400,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/6-S081/" class="print-no-link">#6.S081</a>
+        <a href="/tags/compiler/" class="print-no-link">#compiler</a>
       
     </div>
   
@@ -366,8 +412,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>MIT 6.S081 第五章笔记 | 页面故障</div>
-      <div>https://acmicpc.top/2024/02/29/MIT-6.S081-lab05 Notes/</div>
+      <div>从零开始编写 C 编译器 Chapter 2.0 | Runtime Stack</div>
+      <div>https://acmicpc.top/2026/01/22/write_a_c_compiler/Chapter2.0-Stack/</div>
     </div>
     <div class="license-meta">
       
@@ -379,7 +425,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年2月29日</div>
+          <div>2026年1月22日</div>
         </div>
       
       
@@ -411,18 +457,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/02/29/MIT-6.S081-lab04%20Notes/" title="MIT 6.S081 第四章笔记 | 陷入指令和中断">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">MIT 6.S081 第四章笔记 | 陷入指令和中断</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/02/28/MIT-6.S081-lab03/" title="MIT 6.S081 lab3：page tables | 页表">
-                        <span class="hidden-mobile">MIT 6.S081 lab3：page tables | 页表</span>
+                      <a href="/2026/01/17/write_a_c_compiler/Chapter1.3-Codegen/" title="从零开始编写 C 编译器 Chapter 1.3 | Codegen">
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 1.3 | Codegen</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

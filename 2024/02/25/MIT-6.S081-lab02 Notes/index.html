@@ -312,99 +312,40 @@
                 
                 <p>操作系统应该实现三个功能：<strong>并发</strong>、<strong>隔离</strong>、<strong>交互</strong>。即能保证多个程序都能分到硬件资源；各个进程之间的内存、指令、数据相互隔离，一个进程崩溃不会影响到其他进程；进程之间能通过受控的接口来进行通信。</p>
 <p>操作系统提供了高级别的抽象，来管理硬件资源。例如，用<strong>文件描述符</strong>来抽象磁盘、内存、管道等资源，用户程序能通过简单的<code>read</code>、<code>write</code>、<code>close</code>来访问所有存储资源，而不用关心是和磁盘、内存、管道、还是标准输入输出交互。</p>
-<h2 id="user-mode-supervisor-mode-machine-mode">2.2 User mode、
-supervisor mode、 machine mode</h2>
-<p>为了实现进程隔离，<span class="math inline">\(RISC-V\)</span>
-CPU在硬件上提供3种执行命令的模式：machine mode, supervisor mode, user
-mode。</p>
-<ol type="1">
-<li><p><span class="math inline">\(machine \space mode\)</span>：
-机器模式拥有全权限。CPU以机器模式启动。机器模式大多时候用于配置计算机。xv6执行必要的几行指令后就转为监管模式。</p></li>
-<li><p><span class="math inline">\(supervisor \space mode\)</span>：
-在监管模式下，CPU可以执行特权指令(<span class="math inline">\(privileged
-\space instructions\)</span>),
-比如中断管理、对存储页表的寄存器进行读写操作、执行系统调用。运行在<em>监管模式</em>也称为运行在<em>内核空间</em>(<span
-class="math inline">\(kernel \space
-space\)</span>)。运行在内核空间的程序被称作<em>内核</em>。</p></li>
-<li><p><span class="math inline">\(user \space mode\)</span>：
-用户模式只能执行用户指令，例如<code>add</code>、<code>jump</code>等简单无害的指令。运行在<em>用户模式</em>也称为运行在<em>用户空间</em>。</p></li>
+<h2 id="2-2-User-mode、-supervisor-mode、-machine-mode"><a href="#2-2-User-mode、-supervisor-mode、-machine-mode" class="headerlink" title="2.2 User mode、 supervisor mode、 machine mode"></a>2.2 User mode、 supervisor mode、 machine mode</h2><p>为了实现进程隔离，$RISC-V$ CPU在硬件上提供3种执行命令的模式：machine mode, supervisor mode, user mode。</p>
+<ol>
+<li><p>$machine \space mode$： 机器模式拥有全权限。CPU以机器模式启动。机器模式大多时候用于配置计算机。xv6执行必要的几行指令后就转为监管模式。</p>
+</li>
+<li><p>$supervisor \space mode$： 在监管模式下，CPU可以执行特权指令($privileged \space instructions$), 比如中断管理、对存储页表的寄存器进行读写操作、执行系统调用。运行在<em>监管模式</em>也称为运行在<em>内核空间</em>($kernel \space space$)。运行在内核空间的程序被称作<em>内核</em>。</p>
+</li>
+<li><p>$user \space mode$： 用户模式只能执行用户指令，例如<code>add</code>、<code>jump</code>等简单无害的指令。运行在<em>用户模式</em>也称为运行在<em>用户空间</em>。</p>
+</li>
 </ol>
 <p>运行在用户空间的程序如果执行了特权指令，CPU会转换到特权模式并将该程序强制停止。</p>
-<h2 id="the-kernel-organization">2.3 The kernel organization</h2>
-<p><em>monolithic kernel</em>： 整个操作系统在kernel中，所有system
-call都在supervisor mode下运行。xv6是一个monolithic kernel。</p>
-<p><em>micro kernel</em>： 将必须运行在supervisor
-mode下的操作系统代码压到最小，保证kernel的安全性和简洁，将大部分的操作系统代码执行在user
-mode下。</p>
+<h2 id="2-3-The-kernel-organization"><a href="#2-3-The-kernel-organization" class="headerlink" title="2.3 The kernel organization"></a>2.3 The kernel organization</h2><p><em>monolithic kernel</em>： 整个操作系统在kernel中，所有system call都在supervisor mode下运行。xv6是一个monolithic kernel。</p>
+<p><em>micro kernel</em>： 将必须运行在supervisor mode下的操作系统代码压到最小，保证kernel的安全性和简洁，将大部分的操作系统代码执行在user mode下。</p>
 <p>宏内核易于设计，但是系统调用较复杂，并且一旦任意一条特权指令出错，整个操作系统都会崩溃。</p>
 <p>如下图所示，文件系统作为用户级别的进程执行，用户通过进程间通信请求文件系统的服务。这种运行在用户模式的内核模块称作<code>server</code>。微内核更轻便、稳定，但是难于设计和实现。</p>
-<figure>
-<img src="/img/6.S081/Lab-02/micro_kernel.png" srcset="/img/loading.gif" lazyload
-alt="Figure： 1.1 A microkernel with a file-system server" />
-<figcaption aria-hidden="true">Figure： 1.1 A microkernel with a
-file-system server</figcaption>
-</figure>
-<p>下图列出了 xv6
-的所有内核文件和其对应的功能。模块间接口定义在<code>kernel/defs.h</code>文件中。
-<img src="/img/6.S081/Lab-02/kernel_src.png" srcset="/img/loading.gif" lazyload
-alt="xv6&#39;s kernel source file" /></p>
-<h2 id="process-overview">2.4 Process overview</h2>
-<p>隔离的单元叫作<strong>进程</strong>,
-一个进程不能破坏或监听另一个进程的内存、CPU、文件描述符，也不能破坏
-kernel 本身。</p>
-<p>为了加强隔离，内核为每个进程提供了一块私有、独立的内存，称作地址空间(address
-space)，这让进程认为自己拥有一个独立的机器，而不用和其他进程共享硬件资源。其他的进程不能访问这块内存。</p>
-<p>操作系统使用<strong>页表(page
-table)</strong>的概念来实现内存独立。页表提供
-<strong>虚拟地址</strong>(RISC-V操作的地址)到<strong>物理地址</strong>(CPU芯片发送到内存的地址)的映射(或转换)。</p>
-<p>xv6 为每一个进程维护一个独立的页表，如下图所示。地址空间从 <span
-class="math inline">\(0\)</span>
-号地址开始，首先是指令，然后是全局变量(<strong>栈空间</strong>)，之后是进程可以根据需要灵活拓展的<strong>堆空间</strong>(用于<code>malloc</code>)。</p>
+<p><img src="/img/6.S081/Lab-02/micro_kernel.png" srcset="/img/loading.gif" lazyload alt="Figure： 1.1 A microkernel with a file-system server"></p>
+<p>下图列出了 xv6 的所有内核文件和其对应的功能。模块间接口定义在<code>kernel/defs.h</code>文件中。<br><img src="/img/6.S081/Lab-02/kernel_src.png" srcset="/img/loading.gif" lazyload alt="xv6&#39;s kernel source file"></p>
+<h2 id="2-4-Process-overview"><a href="#2-4-Process-overview" class="headerlink" title="2.4 Process overview"></a>2.4 Process overview</h2><p>隔离的单元叫作<strong>进程</strong>, 一个进程不能破坏或监听另一个进程的内存、CPU、文件描述符，也不能破坏 kernel 本身。</p>
+<p>为了加强隔离，内核为每个进程提供了一块私有、独立的内存，称作地址空间(address space)，这让进程认为自己拥有一个独立的机器，而不用和其他进程共享硬件资源。其他的进程不能访问这块内存。</p>
+<p>操作系统使用<strong>页表(page table)<strong>的概念来实现内存独立。页表提供 <strong>虚拟地址</strong>(RISC-V操作的地址)到</strong>物理地址</strong>(CPU芯片发送到内存的地址)的映射(或转换)。</p>
+<p>xv6 为每一个进程维护一个独立的页表，如下图所示。地址空间从 $0$ 号地址开始，首先是指令，然后是全局变量(<strong>栈空间</strong>)，之后是进程可以根据需要灵活拓展的<strong>堆空间</strong>(用于<code>malloc</code>)。</p>
 <p>题外话：操作系统中的堆栈和数据结构中的堆栈没有关系。<strong>堆</strong>是指在运行时动态分配的空间，<strong>栈</strong>是在运行前确定的静态空间。</p>
-<figure>
-<img src="/img/6.S081/Lab-02/page_table.png" srcset="/img/loading.gif" lazyload
-alt="Figure： 1.2 Layout of a process’s virtual address space" />
-<figcaption aria-hidden="true">Figure： 1.2 Layout of a process’s
-virtual address space</figcaption>
-</figure>
-<p>RISC-V使用 <span class="math inline">\(64\)</span> 位指针，但是 xv6
-只使用低 <span class="math inline">\(38\)</span>
-位就够了，因此最大地址是 <span class="math inline">\(2^{38} - 1 =
-0x3fffffffff = MAXVA\)</span>。</p>
-<p>xv6
-使用<code>struct proc</code>(声明在<code>kernel/proc.h</code>)来维护每个进程的状态。进程最重要的几个信息:
-1. 页表(<code>p-&gt;pagetable</code>). 2.
-进程栈(<code>p-&gt;kstack</code>). 3.
-进程运行状态(<code>p-&gt;state</code>)。</p>
-<p>每个进程中都有线程(<span
-class="math inline">\(thread\)</span>)，是执行进程命令的最小单元，可以被暂停和继续。</p>
-<p>每个进程有两个栈：用户栈(user stack)和内核栈(kernel
-stack)。当进程在user
-space中进行时只使用用户堆栈，当进程进入了内核(比如进行了system
-call)使用内核堆栈。</p>
-<p>操作系统给进程提供了两种假象:
-地址空间给进程提供了独自拥有内存的假象、线程给进程提供了独自拥有 CPU
-的假象。</p>
-<h2 id="starting-the-first-process">2.5 Starting the first process</h2>
-<p>当RISC-V芯片通电后，它会自动读取 <span
-class="math inline">\(ROM\)</span> 的指令初始化自己，并运行引导程序(在
-xv6 中为<code>kernel/kernel.ld</code>)将内核加载入内存中。然后在machine
-mode从_entry(<code>kernel/entry.S</code>)开始运行xv6。bootloader将xv6
-kernel加载到0x80000000的物理地址中，因为前面的地址中有I/O设备。</p>
-<p><code>start</code>函数中，先以machine
-mode做了一些配置，然后调用<code>mret</code>指令跳转到supervisor mode,
-并通过修改 PC 寄存器的值跳转到<code>kernel/main.c</code>。</p>
-<p><code>main</code>先对一些设备和子系统进行初始化，然source/_posts/2024/MIT-6.S081-lab03.md
-进程将要请求的系统调用号写入<code>p-&gt;trapframe-&gt;a7</code>,
-其中<code>p</code>为当前进程的<code>struct proc</code>。并且将参数写入<code>p-&gt;trapframe-&gt;a0</code>和其他寄存器。之后进程执行<code>ecall</code>指令，并保存进程相关信息(其中就包括<code>trapframe</code>)。然后开始执行<code>syscall(kernel/syscall.c:95)</code></p>
+<p><img src="/img/6.S081/Lab-02/page_table.png" srcset="/img/loading.gif" lazyload alt="Figure： 1.2 Layout of a process’s virtual address space"></p>
+<p>RISC-V使用 $64$ 位指针，但是 xv6 只使用低 $38$ 位就够了，因此最大地址是 $2^{38} - 1 &#x3D; 0x3fffffffff &#x3D; MAXVA$。</p>
+<p>xv6 使用<code>struct proc</code>(声明在<code>kernel/proc.h</code>)来维护每个进程的状态。进程最重要的几个信息: 1. 页表(<code>p-&gt;pagetable</code>). 2. 进程栈(<code>p-&gt;kstack</code>). 3. 进程运行状态(<code>p-&gt;state</code>)。</p>
+<p>每个进程中都有线程($thread$)，是执行进程命令的最小单元，可以被暂停和继续。</p>
+<p>每个进程有两个栈：用户栈(user stack)和内核栈(kernel stack)。当进程在user space中进行时只使用用户堆栈，当进程进入了内核(比如进行了system call)使用内核堆栈。</p>
+<p>操作系统给进程提供了两种假象: 地址空间给进程提供了独自拥有内存的假象、线程给进程提供了独自拥有 CPU 的假象。</p>
+<h2 id="2-5-Starting-the-first-process"><a href="#2-5-Starting-the-first-process" class="headerlink" title="2.5 Starting the first process"></a>2.5 Starting the first process</h2><p>当RISC-V芯片通电后，它会自动读取 $ROM$ 的指令初始化自己，并运行引导程序(在 xv6 中为<code>kernel/kernel.ld</code>)将内核加载入内存中。然后在machine mode从_entry(<code>kernel/entry.S</code>)开始运行xv6。bootloader将xv6 kernel加载到0x80000000的物理地址中，因为前面的地址中有I&#x2F;O设备。</p>
+<p><code>start</code>函数中，先以machine mode做了一些配置，然后调用<code>mret</code>指令跳转到supervisor mode, 并通过修改 PC 寄存器的值跳转到<code>kernel/main.c</code>。</p>
+<p><code>main</code>先对一些设备和子系统进行初始化，然source&#x2F;_posts&#x2F;2024&#x2F;MIT-6.S081-lab03.md<br>进程将要请求的系统调用号写入<code>p-&gt;trapframe-&gt;a7</code>, 其中<code>p</code>为当前进程的<code>struct proc</code>。并且将参数写入<code>p-&gt;trapframe-&gt;a0</code>和其他寄存器。之后进程执行<code>ecall</code>指令，并保存进程相关信息(其中就包括<code>trapframe</code>)。然后开始执行<code>syscall(kernel/syscall.c:95)</code></p>
 <p><code>syscall()</code>从<code>trapframe-&gt;a7</code>中拿到索引，通过一个函数指针数组<code>syscall[]</code>(定义在<code>kernel/syscall.c</code>中)获取对应系统调用的函数指令。然后将系统调用的返回写入<code>p-&gt;trapframe-&gt;a0</code>。</p>
-<p>系统调用号( <span class="math inline">\(system \space call \space
-number\)</span>
-)定义在<code>kernel/syscall.h</code>中，作为内核找到函数指针的索引。</p>
-<h2 id="system-call-arguments">2.7 System call arguments</h2>
-<p>对应教材第4章第4节。</p>
-<p><code>trap</code>相关的代码将用户寄存器保存在当前进程的<code>trapframe</code>中，内核函数<code>argint</code>、<code>argaddr</code>、<code>argfd</code>从<code>trapframe</code>中的指定寄存器得到数据，并分别按照整数、地址、文件描述符解析。通过<code>argrow</code>能方便的读取第<span
-class="math inline">\(n\)</span>个寄存器的内容(这些函数都定义在<code>kernel\syscall.c</code>中)。</p>
+<p>系统调用号( $system \space call \space number$ )定义在<code>kernel/syscall.h</code>中，作为内核找到函数指针的索引。</p>
+<h2 id="2-7-System-call-arguments"><a href="#2-7-System-call-arguments" class="headerlink" title="2.7 System call arguments"></a>2.7 System call arguments</h2><p>对应教材第4章第4节。</p>
+<p><code>trap</code>相关的代码将用户寄存器保存在当前进程的<code>trapframe</code>中，内核函数<code>argint</code>、<code>argaddr</code>、<code>argfd</code>从<code>trapframe</code>中的指定寄存器得到数据，并分别按照整数、地址、文件描述符解析。通过<code>argrow</code>能方便的读取第$n$个寄存器的内容(这些函数都定义在<code>kernel\syscall.c</code>中)。</p>
 <p>大部分参数都通过指针来传递，有时用户程序还会请求内核访问特定内存并写入数据。为了防止用户程序传入恶意参数，内核使用<code>fetchstr</code>和<code>copyinstr</code>来实现安全地与用户提供的地址之间传输数据的功能。</p>
 
                 

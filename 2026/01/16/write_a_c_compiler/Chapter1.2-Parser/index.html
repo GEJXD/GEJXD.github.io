@@ -21,18 +21,21 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Parser 源代码在经过 Lexer 之后，剔除了无用的部分(如换行、空格等)，形成了一个 token.t 列表。Parser 遍历 token 流，判断某一部分 token 是否能组成正确的语言结构，并把他们抽象为一个结点。将不同的结点分层，最终组成一棵抽象语法树(Abstr">
+    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Parser源代码在经过 Lexer 之后，剔除了无用的部分(如换行、空格等)，形成了一个 token.t 列表。Parser 遍历 token 流，判断某一部分 token 是否能组成正确的语言结构，并把他们抽象为一个结点。将不同的结点分层，最终组成一棵抽象语法树(Abstra">
 <meta property="og:type" content="article">
 <meta property="og:title" content="从零开始编写 C 编译器 Chapter 1.2 | Parser">
 <meta property="og:url" content="https://acmicpc.top/2026/01/16/write_a_c_compiler/Chapter1.2-Parser/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Parser 源代码在经过 Lexer 之后，剔除了无用的部分(如换行、空格等)，形成了一个 token.t 列表。Parser 遍历 token 流，判断某一部分 token 是否能组成正确的语言结构，并把他们抽象为一个结点。将不同的结点分层，最终组成一棵抽象语法树(Abstr">
+<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  Parser源代码在经过 Lexer 之后，剔除了无用的部分(如换行、空格等)，形成了一个 token.t 列表。Parser 遍历 token 流，判断某一部分 token 是否能组成正确的语言结构，并把他们抽象为一个结点。将不同的结点分层，最终组成一棵抽象语法树(Abstra">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://acmicpc.top/img/write_a_c_compiler/Chapter_1/2026-01-16_17_06_46.png">
+<meta property="og:image" content="https://acmicpc.top/img/write_a_c_compiler/Chapter_1/2026-01-17_23_13_03.png">
 <meta property="article:published_time" content="2026-01-16T15:07:25.000Z">
-<meta property="article:modified_time" content="2026-01-18T15:39:02.368Z">
+<meta property="article:modified_time" content="2026-01-19T04:17:55.577Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://acmicpc.top/img/write_a_c_compiler/Chapter_1/2026-01-16_17_06_46.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
@@ -307,154 +310,74 @@
               <div class="markdown-body">
                 
                 <blockquote>
-<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a
-C Compiler</em></p>
+<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a C Compiler</em></p>
 </blockquote>
-<h2 id="parser">Parser</h2>
-<p>源代码在经过 Lexer 之后，剔除了无用的部分(如换行、空格等)，形成了一个
-token.t 列表。Parser 遍历 token 流，判断某一部分 token
-是否能组成正确的语言结构，并把他们抽象为一个结点。将不同的结点分层，最终组成一棵抽象语法树(Abstract
-Syntax Tree, AST)。</p>
-<p>线性的 token 流失去了源码的结构性，同时很难处理优先级等问题。AST
-的树形结构天然具有递归性，能很容易的进行递归甚至回溯，是更符合机器体质的数据结构。</p>
-<p>一般来说，语法错误都是在 Parse 阶段判断的，在生成 AST
-之后，编译器只保留了程序的语义结构，但省略了具体的语法细节(如分号、括号)，因此称为
-“抽象”语法树。本质上 Lexer 和 Parser
-都是对源代码的抽象，最终保留下来核心的语义信息交给后续部分生成 Assembly
-Code。</p>
-<h2 id="ast-的一个例子">AST 的一个例子</h2>
-<p>考虑如下的 <code>if-statement</code> 语句。 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">if</span> (a &lt; b) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">2</span> + <span class="hljs-number">2</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
-<p>其对应的 AST 中，根节点表示整个 <code>if</code>
-语句，并有两个子节点：</p>
+<h2 id="Parser"><a href="#Parser" class="headerlink" title="Parser"></a>Parser</h2><p>源代码在经过 Lexer 之后，剔除了无用的部分(如换行、空格等)，形成了一个 token.t 列表。Parser 遍历 token 流，判断某一部分 token 是否能组成正确的语言结构，并把他们抽象为一个结点。将不同的结点分层，最终组成一棵抽象语法树(Abstract Syntax Tree, AST)。</p>
+<p>线性的 token 流失去了源码的结构性，很难处理嵌套的子结构及分支结构等。AST 的树形结构天然具有递归性，能很容易的进行递归甚至回溯，是更符合机器体质的数据结构。</p>
+<p>一般来说，语法错误都是在 Parse 阶段判断的，在生成 AST 之后，编译器只保留了程序的语义结构，但省略了具体的语法细节(如分号、括号)，因此称为 “抽象”语法树。本质上 Lexer 和 Parser 都是对源代码的抽象，最终保留下来核心的语义信息交给后续部分生成 Assembly Code。</p>
+<h2 id="AST-的一个例子"><a href="#AST-的一个例子" class="headerlink" title="AST 的一个例子"></a>AST 的一个例子</h2><p>考虑如下的 <code>if-statement</code> 语句。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">if</span> (a &lt; b) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">2</span> + <span class="hljs-number">2</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其对应的 AST 中，根节点表示整个 <code>if</code> 语句，并有两个子节点：</p>
 <ul>
 <li>左子树: The condition <code>a &lt; b</code></li>
 <li>右子树: The statement <code>return 2 + 2</code></li>
 </ul>
-<p>我们还可以对每个子节点定义更细致的孙结点:
-表达式、二元运算符、左操作数、右操作数等。上述 <code>if</code>
-语句的完整 AST 见下图：</p>
-<p><img
-src="/img/write_a_c_compiler/Chapter_1/2026-01-16_17_06_46.png" srcset="/img/loading.gif" lazyload /></p>
-<p>对于本章给出的 C 程序 <code>return_2.c</code>，它的 AST
-会更加简单。如下图所示，这是一个线性的树型结构。</p>
-<p><img
-src="/img/write_a_c_compiler/Chapter_1/2026-01-17_23_13_03.png" srcset="/img/loading.gif" lazyload /></p>
-<p>AST 所保留的语义信息和源代码是同等的，即我们可以从源代码生成一棵
-AST，同样也可以从一棵 AST 还原回源代码。这条性质在后续 debug
-的时候很重要。</p>
-<h2 id="ast-的定义">AST 的定义</h2>
-<p>我们使用 <em>Zephyr Abstract Syntax Description Language(ASDL)</em>
-语言来描述一棵 AST。对于 <code>return_2.c</code>
-的AST，我们可以定义为如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definitions)<br>function_definition = Function(identifier name, statement body)<br>statement = Return(exp)<br>exp = Constant(int)<br></code></pre></td></tr></table></figure></p>
-<p>每一行都定义了一个 AST 的结点。根节点是 <code>Program</code>
-结点，其子节点(或子节点们)为一个元素类型为
-<code>function_definition</code> 的列表的结点。但目前我们只有
-<code>main</code> 函数，所以只有一个子节点。一个
-<code>function_definition</code> 结点有两个子节点: 用于表示函数名的
-<code>identifier</code> 结点 和 表明语句的 <code>statement</code>
-结点。之后还可能新增参数节点(<code>argument node</code>)。目前我们只有
-<code>return</code> 语句，所以只有一种 <code>statement</code>
-结点，且它的唯一子节点为一个 <code>exp</code> 结点。同样，
-<code>exp</code> 结点只有一种，它只代表一个 <code>int</code>
-类型的常数。</p>
-<p>我们可以通过 <code>|</code> 来为一类结点添加新的变体
-<em>constructor</em>。例如：</p>
+<p>我们还可以对每个子节点定义更细致的孙结点: 表达式、二元运算符、左操作数、右操作数等。上述 <code>if</code> 语句的完整 AST 见下图：</p>
+<p><img src="/img/write_a_c_compiler/Chapter_1/2026-01-16_17_06_46.png" srcset="/img/loading.gif" lazyload></p>
+<p>对于本章给出的 C 程序 <code>return_2.c</code>，它的 AST 会更加简单。如下图所示，这是一个线性的树型结构。</p>
+<p><img src="/img/write_a_c_compiler/Chapter_1/2026-01-17_23_13_03.png" srcset="/img/loading.gif" lazyload></p>
+<p>AST 所保留的语义信息和源代码是同等的，即我们可以从源代码生成一棵 AST，同样也可以从一棵 AST 还原回源代码。这条性质在后续 debug 的时候很重要。</p>
+<h2 id="AST-的定义"><a href="#AST-的定义" class="headerlink" title="AST 的定义"></a>AST 的定义</h2><p>我们使用 <em>Zephyr Abstract Syntax Description Language(ASDL)</em> 语言来描述一棵 AST。对于 <code>return_2.c</code> 的AST，我们可以定义为如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definitions)<br>function_definition = Function(identifier name, statement body)<br>statement = Return(exp)<br>exp = Constant(int)<br></code></pre></td></tr></table></figure>
+
+<p>每一行都定义了一个 AST 的结点。根节点是 <code>Program</code> 结点，其子节点(或子节点们)为一个元素类型为 <code>function_definition</code> 的列表的结点。但目前我们只有 <code>main</code> 函数，所以只有一个子节点。一个 <code>function_definition</code> 结点有两个子节点: 用于表示函数名的 <code>identifier</code> 结点 和 表明语句的 <code>statement</code> 结点。之后还可能新增参数节点(<code>argument node</code>)。目前我们只有 <code>return</code> 语句，所以只有一种 <code>statement</code> 结点，且它的唯一子节点为一个 <code>exp</code> 结点。同样， <code>exp</code> 结点只有一种，它只代表一个 <code>int</code> 类型的常数。</p>
+<p>我们可以通过 <code>|</code> 来为一类结点添加新的变体 <em>constructor</em>。例如：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">statement = Return(exp) | If(exp condition, statement then, statement? else)<br></code></pre></td></tr></table></figure>
-<p>此时 <em>statement</em> 的值可以为<code>Return</code> 或
-<code>If</code>。若为 <code>If</code>
-结点时，有3个子节点，分别为表明判断条件的 <code>exp</code>
-结点，条件满足时候的执行的 <code>statement</code> 结点，和不满足时执行的
-<code>statement</code> 结点。<code>statement?</code> 中的 <code>?</code>
-表明此子节点是可选的，因为不是所有的 <code>if</code> 语句都有
-<code>else</code>。</p>
-<h2 id="形式文法-formal-grammar">形式文法 (Formal Grammar)</h2>
-<p>上述 ASDL 语句只定义了每个结点所包含的信息，我们还需要一套从
-<strong>token</strong> 序列构建 <strong>AST</strong> 的规则。比如
-<code>return</code> 语句结束时必须跟着一个
-<code>;</code>，函数体必须包裹在 <code>&#123;&#125;</code>
-中等等。这套规则我们叫作 <strong>形式文法(Formal Grammar)</strong>
-。对于 <code>return_2.c</code> 的 AST，每种结点所对应的形式文法如下：
-<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;program&gt; ::= &lt;function&gt;<br>&lt;function&gt; ::= <span class="hljs-string">&quot;int&quot;</span> &lt;identifier&gt; <span class="hljs-string">&quot;(&quot;</span> <span class="hljs-string">&quot;void&quot;</span> <span class="hljs-string">&quot;)&quot;</span> <span class="hljs-string">&quot;&#123;&quot;</span> &lt;statement&gt; <span class="hljs-string">&quot;&#125;&quot;</span><br>&lt;statement&gt; ::= <span class="hljs-string">&quot;return&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;;&quot;</span><br>&lt;exp&gt; ::= &lt;int&gt;<br>&lt;identifier&gt; ::= <span class="hljs-meta">? An identifier token ?</span><br>&lt;int&gt; ::= <span class="hljs-meta">? A constant token ?</span><br></code></pre></td></tr></table></figure></p>
-<p>本文采用 <em>extended Backus-Naur form (EBNF) </em>
-记号，每一行都是一条产生式规则 (productioin
-rule)，用于定义一个语言结构如何由其他语言结构和 token 组成。用
-<code>&lt;&gt;</code> 括起来的符号叫作 <strong>非终结符(non-terminal
-symbols)</strong>，而单一的 token 称作 <strong>终结符(terminal
-symbols)</strong>。非终结符可以在产生式左侧出现、并可被进一步替换或展开的符号。它们不代表语言中的实际字符或词法单元，而是代表语法结构的抽象类别。由于
-<em>identifier</em> 和 <em>int</em> 在源代码中并不是固定的，我们使用两个
-<code>?</code> 将其包裹起来。</p>
-<p>在上述定义中，<code>&lt;function&gt;</code>
-后的语句规定了，一个合法的函数定义必须包括: 一个 <code>int</code> 类型的
-token，后跟着一个 <code>Identifier</code> 类型的 token，再后面是
-左括号、<code>void</code>、右括号等等。只要有一段 token
-序列满足这个定义，就可以将其合成为一个 <code>function</code> 结点。</p>
-<p>如果我们想对非终结符 <code>statement</code> 增加一类 <code>if</code>
-语句，可以通过如下的产生式规则来定义其语法。<code>[]</code>
-表示可选部分。 <figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;statement&gt; ::= <span class="hljs-string">&quot;return&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;;&quot;</span> <br>               | <span class="hljs-string">&quot;if&quot;</span> <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span> &lt;statement&gt; [ <span class="hljs-string">&quot;else&quot;</span> &lt;statement&gt; ]<br></code></pre></td></tr></table></figure></p>
-<h2 id="递归下降解析-recursive-descen-parsing">递归下降解析 (Recursive
-Descen Parsing)</h2>
-<p>RDP 是一种自顶向下的语法分析方法，通过为文法中的每个
-<strong>非终结符</strong> 编写一个对应的 token 转换函数来实现对输入
-token 流的解析。</p>
-<p>更详细的描述为： 给定一组形式文法，递归下降解析器为每个非终结符 <span
-class="math inline">\(A\)</span> 构造一个解析器
-<code>parse_A()</code>。该解析器：</p>
+
+<p>此时 <em>statement</em> 的值可以为<code>Return</code> 或 <code>If</code>。若为 <code>If</code> 结点时，有3个子节点，分别为表明判断条件的 <code>exp</code> 结点，条件满足时候的执行的 <code>statement</code> 结点，和不满足时执行的 <code>statement</code> 结点。<code>statement?</code> 中的 <code>?</code> 表明此子节点是可选的，因为不是所有的 <code>if</code> 语句都有 <code>else</code>。</p>
+<h2 id="形式文法-Formal-Grammar"><a href="#形式文法-Formal-Grammar" class="headerlink" title="形式文法 (Formal Grammar)"></a>形式文法 (Formal Grammar)</h2><p>上述 ASDL 语句只定义了每个结点所包含的信息，我们还需要一套从 <strong>token</strong> 序列构建 <strong>AST</strong> 的规则。比如 <code>return</code> 语句结束时必须跟着一个 <code>;</code>，函数体必须包裹在 <code>&#123;&#125;</code> 中等等。这套规则我们叫作 <strong>形式文法(Formal Grammar)</strong> 。对于 <code>return_2.c</code> 的 AST，每种结点所对应的形式文法如下：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;program&gt; ::= &lt;function&gt;<br>&lt;function&gt; ::= <span class="hljs-string">&quot;int&quot;</span> &lt;identifier&gt; <span class="hljs-string">&quot;(&quot;</span> <span class="hljs-string">&quot;void&quot;</span> <span class="hljs-string">&quot;)&quot;</span> <span class="hljs-string">&quot;&#123;&quot;</span> &lt;statement&gt; <span class="hljs-string">&quot;&#125;&quot;</span><br>&lt;statement&gt; ::= <span class="hljs-string">&quot;return&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;;&quot;</span><br>&lt;exp&gt; ::= &lt;int&gt;<br>&lt;identifier&gt; ::= <span class="hljs-meta">? An identifier token ?</span><br>&lt;int&gt; ::= <span class="hljs-meta">? A constant token ?</span><br></code></pre></td></tr></table></figure>
+
+<p>本文采用 *extended Backus-Naur form (EBNF) * 记号，每一行都是一条产生式规则 (productioin rule)，用于定义一个语言结构如何由其他语言结构和 token 组成。用 <code>&lt;&gt;</code> 括起来的符号叫作 <strong>非终结符(non-terminal symbols)</strong>，而单一的 token 称作 <strong>终结符(terminal symbols)</strong>。非终结符可以在产生式左侧出现、并可被进一步替换或展开的符号。它们不代表语言中的实际字符或词法单元，而是代表语法结构的抽象类别。由于 <em>identifier</em> 和 <em>int</em> 在源代码中并不是固定的，我们使用两个 <code>?</code> 将其包裹起来。</p>
+<p>在上述定义中，<code>&lt;function&gt;</code> 后的语句规定了，一个合法的函数定义必须包括: 一个 <code>int</code> 类型的 token，后跟着一个 <code>Identifier</code> 类型的 token，再后面是 左括号、<code>void</code>、右括号等等。只要有一段 token 序列满足这个定义，就可以将其合成为一个 <code>function</code> 结点。</p>
+<p>如果我们想对非终结符 <code>statement</code> 增加一类 <code>if</code> 语句，可以通过如下的产生式规则来定义其语法。<code>[]</code> 表示可选部分。</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;statement&gt; ::= <span class="hljs-string">&quot;return&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;;&quot;</span> <br>               | <span class="hljs-string">&quot;if&quot;</span> <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span> &lt;statement&gt; [ <span class="hljs-string">&quot;else&quot;</span> &lt;statement&gt; ]<br></code></pre></td></tr></table></figure>
+
+<h2 id="递归下降解析-Recursive-Descen-Parsing"><a href="#递归下降解析-Recursive-Descen-Parsing" class="headerlink" title="递归下降解析 (Recursive Descen Parsing)"></a>递归下降解析 (Recursive Descen Parsing)</h2><p>RDP 是一种自顶向下的语法分析方法，通过为文法中的每个 <strong>非终结符</strong> 编写一个对应的 token 转换函数来实现对输入 token 流的解析。</p>
+<p>更详细的描述为：<br>给定一组形式文法，递归下降解析器为每个非终结符 $A$ 构造一个解析器 <code>parse_A()</code>。该解析器：</p>
 <ul>
 <li>读取当前输入流中的词法单元（token）；</li>
-<li>根据文法中 <span class="math inline">\(A\)</span>
-的产生式规则，决定使用哪一条规则进行展开；</li>
-<li>递归调用其他非终结符对应的解析器，直至语句解析完毕，或 token
-消耗完毕；</li>
-<li>若解析成功，则消耗相应 token，并生成对应的 AST
-结点；若失败，则可报错或回溯。</li>
+<li>根据文法中 $A$ 的产生式规则，决定使用哪一条规则进行展开；</li>
+<li>递归调用其他非终结符对应的解析器，直至语句解析完毕，或 token 消耗完毕；</li>
+<li>若解析成功，则消耗相应 token，并生成对应的 AST 结点；若失败，则可报错或回溯。</li>
 </ul>
-<p>例如，对于 <code>return_2.c</code> 的 Parser，解析
-<code>statement</code> 语句可为如下伪代码： <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs stylus"><span class="hljs-function"><span class="hljs-title">parse_statement</span><span class="hljs-params">(tokens)</span></span>:<br>    <span class="hljs-built_in">expect</span>(<span class="hljs-string">&quot;return&quot;</span>, tokens)<br>    return_val = <span class="hljs-built_in">parse_exp</span>(tokens)<br>    <span class="hljs-built_in">expect</span>(<span class="hljs-string">&quot;;&quot;</span>, tokens)<br>    return <span class="hljs-built_in">Return</span>(return_val)<br><br><span class="hljs-function"><span class="hljs-title">expect</span><span class="hljs-params">(expected, tokens)</span></span>:<br>    actual = <span class="hljs-built_in">take_token</span>(tokens)<br>    <span class="hljs-keyword">if</span> actual != expected:<br>        <span class="hljs-built_in">fail</span>(<span class="hljs-string">&quot;Syntax error&quot;</span>)<br></code></pre></td></tr></table></figure>
-当这个位置期待有一条 <em>statement</em> 时，我们调用
-<code>parse_statement</code> 解析器。根据形式文法，<em>statement</em>
-需要由三部分组成：<code>return</code> 关键字，一个 <em>exp</em>
-符号，以及一个 <code>;</code>。通过复杂函数 <code>expect</code>
-判断下一个 token 是否是 <code>Return</code>，之后递归的调用
-<code>parse_exp</code> 来解析 <code>exp</code>
-符号。这也是这种解析方法被称为 ”递归下降“ 的原因。由于
-<code>program</code> 结点中包括了所有的
-<code>function_definition</code>，同时也理应包括了所有的
-<code>exp</code>，所以调用 <code>parse_program</code>
-就能递归的解析完所有的产生式规则，并生成对应的 AST。</p>
-<p>当一个 AST 结点可由多条产生式规则生成时(如 <code>return</code> 和
-<code>if</code> 都对应一个 <code>statement</code>
-结点)，可以根据首部的几个 token
-决定使用哪条路径，或可以采用回溯的方法枚举所有的规则。</p>
-<h2 id="implementation">Implementation</h2>
-<p>首先定义 <code>ast</code> 结点。每类结点使用一个枚举体即可：
-<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> exp = <span class="hljs-type">Constant</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">int</span><br><span class="hljs-keyword">type</span> statement = <span class="hljs-type">Return</span> <span class="hljs-keyword">of</span> exp<br><span class="hljs-keyword">type</span> function_definition = <span class="hljs-type">Function</span> <span class="hljs-keyword">of</span> <br>  &#123;name : <span class="hljs-built_in">string</span>; body : statement&#125;<br><br><span class="hljs-keyword">type</span> t = <span class="hljs-type">Program</span> <span class="hljs-keyword">of</span> function_definition<br></code></pre></td></tr></table></figure></p>
-<p>可以使用 <em>流式输入</em> 来维护 token 流: <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> take_token tokens =<br>  <span class="hljs-keyword">try</span> <span class="hljs-type">Stream</span>.next tokens <span class="hljs-keyword">with</span> <span class="hljs-type">Stream</span>.<span class="hljs-type">Failure</span> -&gt; raise <span class="hljs-type">End_of_stream</span><br><br><span class="hljs-comment">(* convert a list to a stream *)</span><br><span class="hljs-keyword">let</span> of_list lst = <span class="hljs-type">Stream</span>.of_list lst<br></code></pre></td></tr></table></figure></p>
-<p>对于每类结点，根据产生式规则编写一个 <code>parse</code>，消耗 token
-并生成对应的 AST 结点 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> parse_id tokens = <br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Tok_stream</span>.take_token tokens <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Identifier</span> x -&gt; x<br>  | other -&gt; raise_error ~expected:(<span class="hljs-type">Name</span> <span class="hljs-string">&quot;an identifier&quot;</span>) ~actual:other<br><br><span class="hljs-keyword">let</span> parse_int tokens = <br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Tok_stream</span>.take_token tokens <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Constant</span> c -&gt; <span class="hljs-type">Ast</span>.<span class="hljs-type">Constant</span> c<br>  | _ -&gt; raise (<span class="hljs-type">ParserError</span> <span class="hljs-string">&quot;Syntax error&quot;</span>)<br><br><span class="hljs-keyword">let</span> parse_exp tokens = <br>  parse_int tokens<br><br><span class="hljs-keyword">let</span> parse_statement tokens = <br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">KWReturn</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> return_val = parse_exp tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">Semicolon</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-type">Ast</span>.<span class="hljs-type">Return</span> return_val<br><br><span class="hljs-keyword">let</span> parse_function_definition tokens = <br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">KWInt</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> fun_name = parse_id tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">OpenParen</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">KWVoid</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">CloseParen</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">OpenBrace</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> statement = parse_statement tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">CloseBrace</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-type">Ast</span>.<span class="hljs-type">Function</span> &#123;name=fun_name; body=statement&#125;<br><br><span class="hljs-keyword">let</span> parse_program tokens = <br>  <span class="hljs-keyword">let</span> fun_def = parse_function_definition tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">if</span> <span class="hljs-type">Tok_stream</span>.is_empty tokens <span class="hljs-keyword">then</span> <span class="hljs-type">Ast</span>.<span class="hljs-type">Program</span> fun_def<br>  <span class="hljs-keyword">else</span> raise (<span class="hljs-type">ParserError</span> <span class="hljs-string">&quot;Unexpected tokens after function definition&quot;</span>)<br></code></pre></td></tr></table></figure></p>
-<p>最后调用 <code>parse_program</code>，生成合法的
-AST，并检查是否还有剩余的 token 。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> <span class="hljs-keyword">parser</span> tokens = <br>  <span class="hljs-keyword">try</span> <br>    <span class="hljs-keyword">let</span> token_stream = <span class="hljs-type">Tok_stream</span>.of_list tokens <span class="hljs-keyword">in</span><br>    <span class="hljs-keyword">let</span> ast = <span class="hljs-type">Private</span>.parse_program token_stream<br>  <span class="hljs-keyword">with</span> <span class="hljs-type">Tok_stream</span>.<span class="hljs-type">End_of_stream</span><br>  -&gt; raise (<span class="hljs-type">ParserError</span> <span class="hljs-string">&quot;Unexpected end of file&quot;</span>)<br></code></pre></td></tr></table></figure></p>
-<h2 id="最后的碎碎念">最后的碎碎念</h2>
-<p>从 AST 的构建过程就可以看出 <strong>函数式编程</strong>
-对处理数据结构的优越性。对于一棵树结构，我们不用维护繁琐的
-<code>lchild</code> 和 <code>rchild</code>
-指针，也不用显示指明有多少儿子。</p>
-<p>在函数式语言中，实现一棵树型结构是通过 <strong>元组</strong>
-来实现的，例如对于二叉树，我们可以很简单的定义如下类型：
-<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> binary_tree = <br>  | <span class="hljs-type">Empty</span><br>  | <span class="hljs-type">Node</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">int</span> * binary_tree * binary_tree<br></code></pre></td></tr></table></figure></p>
-<p>对于如下的二叉树，它的实际表示为： <figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs livescript">    <span class="hljs-number">1</span><br>   / <span class="hljs-string">\</span><br>  <span class="hljs-number">2</span>   <span class="hljs-number">3</span><br> / <span class="hljs-string">\</span><br><span class="hljs-number">4</span>   <span class="hljs-number">5</span><br></code></pre></td></tr></table></figure> <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-type">Node</span> (<span class="hljs-number">1</span>,<br>      <span class="hljs-type">Node</span> (<span class="hljs-number">2</span>,<br>            <span class="hljs-type">Node</span> (<span class="hljs-number">4</span>, <span class="hljs-type">Empty</span>, <span class="hljs-type">Empty</span>),<br>            <span class="hljs-type">Node</span> (<span class="hljs-number">5</span>, <span class="hljs-type">Empty</span>, <span class="hljs-type">Empty</span>)),<br>      <span class="hljs-type">Node</span> (<span class="hljs-number">3</span>, <span class="hljs-type">Empty</span>, <span class="hljs-type">Empty</span>)<br>     )<br></code></pre></td></tr></table></figure></p>
-<p>即一个嵌套 <span class="math inline">\(3\)</span> 元组 (1, (2, (4,
-Empty, Empty), (5, Empty, Empty)), (3, Empty, Empty))</p>
-<p>对于我们的 AST 也是同理，只需要几种不同的 一元组(因为目前 AST
-是线性的) 即可。对于 <code>program</code> 结点，包括一个
-<code>function_def</code> 结点。<code>function_def</code>
-包括一个结构体，其中的 <code>body</code> 字段包括一个
-<code>statement</code> 结点，而这个 <code>statement</code> 结点包括一个
-<code>exp</code> 结点。本质上这棵 AST 可表示为
-<code>program(func_def(name; body(exp(int))))</code>
-我们不需要频繁的维护 <code>next</code>
-指针，只需要将递归生成的子节点放在元组对应的阶段即可。想象一下如果用
-<code>cpp</code> 编写同样的 AST，需要对不同的结点定义不同类型的
-<code>next</code> 指针，可能还需要一系列的 抽象基类、继承、多态。</p>
+<p>例如，对于 <code>return_2.c</code> 的 Parser，解析 <code>statement</code> 语句可为如下伪代码：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs stylus"><span class="hljs-function"><span class="hljs-title">parse_statement</span><span class="hljs-params">(tokens)</span></span>:<br>    <span class="hljs-built_in">expect</span>(<span class="hljs-string">&quot;return&quot;</span>, tokens)<br>    return_val = <span class="hljs-built_in">parse_exp</span>(tokens)<br>    <span class="hljs-built_in">expect</span>(<span class="hljs-string">&quot;;&quot;</span>, tokens)<br>    return <span class="hljs-built_in">Return</span>(return_val)<br><br><span class="hljs-function"><span class="hljs-title">expect</span><span class="hljs-params">(expected, tokens)</span></span>:<br>    actual = <span class="hljs-built_in">take_token</span>(tokens)<br>    <span class="hljs-keyword">if</span> actual != expected:<br>        <span class="hljs-built_in">fail</span>(<span class="hljs-string">&quot;Syntax error&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>当这个位置期待有一条 <em>statement</em> 时，我们调用 <code>parse_statement</code> 解析器。根据形式文法，<em>statement</em> 需要由三部分组成：<code>return</code> 关键字，一个 <em>exp</em> 符号，以及一个 <code>;</code>。通过复杂函数 <code>expect</code> 判断下一个 token 是否是 <code>Return</code>，之后递归的调用 <code>parse_exp</code> 来解析 <code>exp</code> 符号。这也是这种解析方法被称为 ”递归下降“ 的原因。由于 <code>program</code> 结点中包括了所有的 <code>function_definition</code>，同时也理应包括了所有的 <code>exp</code>，所以调用 <code>parse_program</code> 就能递归的解析完所有的产生式规则，并生成对应的 AST。</p>
+<p>当一个 AST 结点可由多条产生式规则生成时(如 <code>return</code> 和 <code>if</code> 都对应一个 <code>statement</code> 结点)，可以根据首部的几个 token 决定使用哪条路径，或可以采用回溯的方法枚举所有的规则。</p>
+<h2 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h2><p>首先定义 <code>ast</code> 结点。每类结点使用一个枚举体即可：</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> exp = <span class="hljs-type">Constant</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">int</span><br><span class="hljs-keyword">type</span> statement = <span class="hljs-type">Return</span> <span class="hljs-keyword">of</span> exp<br><span class="hljs-keyword">type</span> function_definition = <span class="hljs-type">Function</span> <span class="hljs-keyword">of</span> <br>  &#123;name : <span class="hljs-built_in">string</span>; body : statement&#125;<br><br><span class="hljs-keyword">type</span> t = <span class="hljs-type">Program</span> <span class="hljs-keyword">of</span> function_definition<br></code></pre></td></tr></table></figure>
+
+<p>可以使用 <em>流式输入</em> 来维护 token 流:</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> take_token tokens =<br>  <span class="hljs-keyword">try</span> <span class="hljs-type">Stream</span>.next tokens <span class="hljs-keyword">with</span> <span class="hljs-type">Stream</span>.<span class="hljs-type">Failure</span> -&gt; raise <span class="hljs-type">End_of_stream</span><br><br><span class="hljs-comment">(* convert a list to a stream *)</span><br><span class="hljs-keyword">let</span> of_list lst = <span class="hljs-type">Stream</span>.of_list lst<br></code></pre></td></tr></table></figure>
+
+<p>对于每类结点，根据产生式规则编写一个 <code>parse</code>，消耗 token 并生成对应的 AST 结点</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> parse_id tokens = <br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Tok_stream</span>.take_token tokens <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Identifier</span> x -&gt; x<br>  | other -&gt; raise_error ~expected:(<span class="hljs-type">Name</span> <span class="hljs-string">&quot;an identifier&quot;</span>) ~actual:other<br><br><span class="hljs-keyword">let</span> parse_int tokens = <br>  <span class="hljs-keyword">match</span> <span class="hljs-type">Tok_stream</span>.take_token tokens <span class="hljs-keyword">with</span><br>  | <span class="hljs-type">T</span>.<span class="hljs-type">Constant</span> c -&gt; <span class="hljs-type">Ast</span>.<span class="hljs-type">Constant</span> c<br>  | _ -&gt; raise (<span class="hljs-type">ParserError</span> <span class="hljs-string">&quot;Syntax error&quot;</span>)<br><br><span class="hljs-keyword">let</span> parse_exp tokens = <br>  parse_int tokens<br><br><span class="hljs-keyword">let</span> parse_statement tokens = <br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">KWReturn</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> return_val = parse_exp tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">Semicolon</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-type">Ast</span>.<span class="hljs-type">Return</span> return_val<br><br><span class="hljs-keyword">let</span> parse_function_definition tokens = <br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">KWInt</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> fun_name = parse_id tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">OpenParen</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">KWVoid</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">CloseParen</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">OpenBrace</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> statement = parse_statement tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> _ = expect <span class="hljs-type">T</span>.<span class="hljs-type">CloseBrace</span> tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-type">Ast</span>.<span class="hljs-type">Function</span> &#123;name=fun_name; body=statement&#125;<br><br><span class="hljs-keyword">let</span> parse_program tokens = <br>  <span class="hljs-keyword">let</span> fun_def = parse_function_definition tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">if</span> <span class="hljs-type">Tok_stream</span>.is_empty tokens <span class="hljs-keyword">then</span> <span class="hljs-type">Ast</span>.<span class="hljs-type">Program</span> fun_def<br>  <span class="hljs-keyword">else</span> raise (<span class="hljs-type">ParserError</span> <span class="hljs-string">&quot;Unexpected tokens after function definition&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>最后调用 <code>parse_program</code>，生成合法的 AST，并检查是否还有剩余的 token 。</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> <span class="hljs-keyword">parser</span> tokens = <br>  <span class="hljs-keyword">try</span> <br>    <span class="hljs-keyword">let</span> token_stream = <span class="hljs-type">Tok_stream</span>.of_list tokens <span class="hljs-keyword">in</span><br>    <span class="hljs-keyword">let</span> ast = <span class="hljs-type">Private</span>.parse_program token_stream<br>  <span class="hljs-keyword">with</span> <span class="hljs-type">Tok_stream</span>.<span class="hljs-type">End_of_stream</span><br>  -&gt; raise (<span class="hljs-type">ParserError</span> <span class="hljs-string">&quot;Unexpected end of file&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<h2 id="最后的碎碎念"><a href="#最后的碎碎念" class="headerlink" title="最后的碎碎念"></a>最后的碎碎念</h2><p>从 AST 的构建过程就可以看出 <strong>函数式编程</strong> 对处理数据结构的优越性。对于一棵树结构，我们不用维护繁琐的 <code>lchild</code> 和 <code>rchild</code> 指针，也不用显示指明有多少儿子。 </p>
+<p>在函数式语言中，实现一棵树型结构是通过 <strong>元组</strong> 来实现的，例如对于二叉树，我们可以很简单的定义如下类型：</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> binary_tree = <br>  | <span class="hljs-type">Empty</span><br>  | <span class="hljs-type">Node</span> <span class="hljs-keyword">of</span> <span class="hljs-built_in">int</span> * binary_tree * binary_tree<br></code></pre></td></tr></table></figure>
+
+<p>对于如下的二叉树，它的实际表示为：</p>
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs livescript">    <span class="hljs-number">1</span><br>   / <span class="hljs-string">\</span><br>  <span class="hljs-number">2</span>   <span class="hljs-number">3</span><br> / <span class="hljs-string">\</span><br><span class="hljs-number">4</span>   <span class="hljs-number">5</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-type">Node</span> (<span class="hljs-number">1</span>,<br>      <span class="hljs-type">Node</span> (<span class="hljs-number">2</span>,<br>            <span class="hljs-type">Node</span> (<span class="hljs-number">4</span>, <span class="hljs-type">Empty</span>, <span class="hljs-type">Empty</span>),<br>            <span class="hljs-type">Node</span> (<span class="hljs-number">5</span>, <span class="hljs-type">Empty</span>, <span class="hljs-type">Empty</span>)),<br>      <span class="hljs-type">Node</span> (<span class="hljs-number">3</span>, <span class="hljs-type">Empty</span>, <span class="hljs-type">Empty</span>)<br>     )<br></code></pre></td></tr></table></figure>
+
+<p>即一个嵌套 $3$ 元组 (1, (2, (4, Empty, Empty), (5, Empty, Empty)), (3, Empty, Empty))</p>
+<p>对于我们的 AST 也是同理，只需要几种不同的 一元组(因为目前 AST 是线性的) 即可。对于 <code>program</code> 结点，包括一个 <code>function_def</code> 结点。<code>function_def</code> 包括一个结构体，其中的 <code>body</code> 字段包括一个 <code>statement</code> 结点，而这个 <code>statement</code> 结点包括一个 <code>exp</code> 结点。本质上这棵 AST 可表示为 <code>program(func_def(name; body(exp(int))))</code> 我们不需要频繁的维护 <code>next</code> 指针，只需要将递归生成的子节点放在元组对应的阶段即可。想象一下如果用 <code>cpp</code> 编写同样的 AST，需要对不同的结点定义不同类型的 <code>next</code> 指针，可能还需要一系列的 抽象基类、继承、多态。</p>
 
                 
               </div>
