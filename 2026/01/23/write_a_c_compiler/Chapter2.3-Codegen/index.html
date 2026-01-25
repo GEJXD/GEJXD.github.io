@@ -29,7 +29,7 @@
 <meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  TACKY 是一种接近汇编语言的 IR，但仍不直接对应具体的 x86 指令。为生成可执行的汇编代码，还需要将 TACKY 程序转换为 Assembly AST，再进一步修复不合法的 x86 指令。 Assembly AST 在这节中，我们需要新维护一些东西：function pr">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-01-22T19:47:31.000Z">
-<meta property="article:modified_time" content="2026-01-22T20:45:22.323Z">
+<meta property="article:modified_time" content="2026-01-25T12:36:51.139Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
@@ -244,7 +244,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          843 字
+          1.3k 字
         
       </span>
     
@@ -255,7 +255,7 @@
         
         
         
-          8 分钟
+          11 分钟
         
       </span>
     
@@ -373,7 +373,33 @@ class="math inline">\(n\)</span> 个
 <code>AllocateStack(n)</code>，插入在 instruction list 的末尾，供 emit
 阶段生成序言。</p>
 <h2 id="implementation">Implementation</h2>
-<p>TODO。</p>
+<p>TACKY 转换到 Assembly AST 很简单 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> convert_instruction = <span class="hljs-keyword">function</span><br>  | <span class="hljs-type">Tacky</span>.<span class="hljs-type">Return</span> tacky_val -&gt;<br>      <span class="hljs-keyword">let</span> asm_val = convert_val tacky_val <span class="hljs-keyword">in</span><br>      <span class="hljs-type">Assembly</span>.[ <span class="hljs-type">Mov</span> (asm_val, <span class="hljs-type">Reg</span> <span class="hljs-type">AX</span>); <span class="hljs-type">Ret</span> ]<br>  | <span class="hljs-type">Tacky</span>.<span class="hljs-type">Unary</span> &#123; op; src; dst &#125; -&gt;<br>      <span class="hljs-keyword">let</span> asm_op = convert_unop op <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> asm_src = convert_val src <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> asm_dst = convert_val dst <span class="hljs-keyword">in</span><br>      <span class="hljs-type">Assembly</span>.[ <span class="hljs-type">Mov</span> (asm_src, asm_dst); <span class="hljs-type">Unary</span> (asm_op, asm_dst) ]<br></code></pre></td></tr></table></figure></p>
+<p><code>replace_pseudo</code>
+比较有意思。由于函数式中数据结构都是持久化的，且常量不可修改，通过一个
+<code>replacement_state</code> 结构体来进行维护，每次更新都返回一个
+<code>state</code>。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">type</span> replacement_state = &#123;<br>  current_offset : <span class="hljs-built_in">int</span>; <span class="hljs-comment">(* last used stack cell *)</span><br>  offset_map : <span class="hljs-built_in">int</span> <span class="hljs-type">StringMap</span>.t <span class="hljs-comment">(* a map from int to string(pseudoregister) *)</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>之后对于 <code>Pseudo</code> 操作数，如果在 <code>map</code>
+中已经存在了，则直接读出偏移量。如果不存在，更新偏移量和新
+<code>map</code>。</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> replace_operand state = <span class="hljs-keyword">function</span><br>  | <span class="hljs-type">Pseudo</span> id -&gt; <span class="hljs-keyword">begin</span><br>      <span class="hljs-keyword">match</span> <span class="hljs-type">StringMap</span>.find_opt id state.offset_map <span class="hljs-keyword">with</span><br>      <span class="hljs-comment">(* already have assigned this identifier, return Assembly Stack operand *)</span><br>      | <span class="hljs-type">Some</span> offset -&gt; (state, <span class="hljs-type">Stack</span> offset)<br>      <span class="hljs-comment">(* have not assgiend it *)</span><br>      | <span class="hljs-type">None</span> -&gt;<br>          <span class="hljs-keyword">let</span> new_offset = state.current_offset - <span class="hljs-number">4</span> <span class="hljs-keyword">in</span><br>          <span class="hljs-keyword">let</span> new_map = <span class="hljs-type">StringMap</span>.add id new_offset state.offset_map <span class="hljs-keyword">in</span><br>          <span class="hljs-keyword">let</span> new_state =<br>            &#123; current_offset = new_offset; offset_map = new_map &#125;<br>          <span class="hljs-keyword">in</span><br>          (new_state, <span class="hljs-type">Stack</span> new_offset)<br>    <span class="hljs-keyword">end</span><br>  | other -&gt; (state, other)<br></code></pre></td></tr></table></figure>
+<p>对于 <code>Ret</code> 指令，由于没有操作数，不做任何修改。对于
+<code>Mov</code> 指令，需要检查两个操作数。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> replace_pseudo_in_instruction state = <span class="hljs-keyword">function</span><br>  | <span class="hljs-type">Mov</span> (src, dst) -&gt;<br>      <span class="hljs-keyword">let</span> state1, new_src = replace_operand state src <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> state2, new_dst = replace_operand state1 dst <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> new_mov = <span class="hljs-type">Mov</span> (new_src, new_dst) <span class="hljs-keyword">in</span><br>      (state2, new_mov)<br>  | <span class="hljs-type">Unary</span> (op, dst) -&gt;<br>      <span class="hljs-keyword">let</span> state1, new_dst = replace_operand state dst <span class="hljs-keyword">in</span><br>      <span class="hljs-keyword">let</span> new_unary = <span class="hljs-type">Unary</span> (op, new_dst) <span class="hljs-keyword">in</span><br>      (state1, new_unary)<br>  | <span class="hljs-type">Ret</span> -&gt; (state, <span class="hljs-type">Ret</span>)<br></code></pre></td></tr></table></figure></p>
+<p><code>pseudo</code> 在不同函数调用下应该独立，则对每个
+<code>function_definition</code> 都初始化
+<code>StringMap</code>。需要更新 <code>state</code> 的同时调用
+<code>replace_pseudo</code>，采用 <code>fold_left_map</code>
+遍历。最终的 <code>state.current_offset</code> 即为需分配的栈大小。
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> replace_pseudo_in_function (<span class="hljs-type">Function</span> &#123; name; instructions &#125;) =<br>  <span class="hljs-keyword">let</span> init_state = &#123; current_offset = <span class="hljs-number">0</span>; offset_map = <span class="hljs-type">StringMap</span>.empty &#125; <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> final_state, fixed_instructions =<br>    <span class="hljs-type">List</span>.fold_left_map replace_pseudo_in_instruction init_state instructions<br>  <span class="hljs-keyword">in</span><br>  ( <span class="hljs-type">Function</span> &#123; name; instructions = fixed_instructions &#125;,<br>    final_state.current_offset )<br></code></pre></td></tr></table></figure></p>
+<p>指令修改只需要检查是否两个操作数都为 <code>Stack</code>
+即可，目前只有 <code>Mov</code> 需要检查。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> fixup_instruction = <span class="hljs-keyword">function</span><br>  | <span class="hljs-type">Mov</span> ((<span class="hljs-type">Stack</span> _ <span class="hljs-keyword">as</span> src), (<span class="hljs-type">Stack</span> _ <span class="hljs-keyword">as</span> dst)) -&gt;<br>      [ <span class="hljs-type">Mov</span> (src, <span class="hljs-type">Reg</span> <span class="hljs-type">R10</span>); <span class="hljs-type">Mov</span> (<span class="hljs-type">Reg</span> <span class="hljs-type">R10</span>, dst) ]<br>  | other -&gt; [ other ]<br></code></pre></td></tr></table></figure></p>
+<p>一条指令可能会被修改为
+<code>instruction list</code>，此时<code>function_definition</code> 中的
+<code>instruction list</code> 会变为二维数组。通过
+<code>concat_map</code> 拼接一下，并添加 <code>AllocateStack</code>
+指令。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> fixup_function last_stack_slot (<span class="hljs-type">Function</span> &#123; name; instructions &#125;) =<br>  <span class="hljs-type">Function</span><br>    &#123;<br>      name;<br>      instructions =<br>        <span class="hljs-type">AllocateStack</span> (-last_stack_slot)<br>        :: <span class="hljs-type">List</span>.concat_map fixup_instruction instructions;<br>    &#125;<br></code></pre></td></tr></table></figure></p>
+<h2 id="emit">emit</h2>
+<p>这部分没啥好说的，将 <code>Unary (op, dst)</code> 输出为
+<code>notl operand</code> 即可。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs ocaml"><span class="hljs-keyword">let</span> show_unary_instruction = <span class="hljs-keyword">function</span> <span class="hljs-type">Neg</span> -&gt; <span class="hljs-string">&quot;negl&quot;</span> | <span class="hljs-type">Not</span> -&gt; <span class="hljs-string">&quot;notl&quot;</span><br><br><span class="hljs-keyword">let</span> emit_instruction chan = <span class="hljs-keyword">function</span><br>  | <span class="hljs-type">Mov</span> (src, dst) -&gt;<br>      <span class="hljs-type">Printf</span>.fprintf chan <span class="hljs-string">&quot;\tmovl %s, %s\n&quot;</span> (show_operand src)<br>        (show_operand dst)<br>  | <span class="hljs-type">Unary</span> (op, dst) -&gt;<br>      <span class="hljs-type">Printf</span>.fprintf chan <span class="hljs-string">&quot;\t%s %s\n&quot;</span><br>        (show_unary_instruction op)<br>        (show_operand dst)<br></code></pre></td></tr></table></figure></p>
 
                 
               </div>
@@ -463,6 +489,12 @@ class="math inline">\(n\)</span> 个
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2026/01/25/write_a_c_compiler/Chapter3.1-Frontend/" title="从零开始编写 C 编译器 Chapter 3.1 | Frontend">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 3.1 | Frontend</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">

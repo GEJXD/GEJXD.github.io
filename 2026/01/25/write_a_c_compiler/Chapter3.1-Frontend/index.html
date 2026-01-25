@@ -1,0 +1,840 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="江欣婷">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  添加对二元运算符 +、-、*、&#x2F;、% 的支持。 Lexer 新增 4 种 token，Plus、Star、Slash、Percent。- 在 Unary 中已经作为 Hyphen 添加了，在 Lexer 阶段不会区分 token 在语义上的区别。 Parser 新增 二元表达式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零开始编写 C 编译器 Chapter 3.1 | Frontend">
+<meta property="og:url" content="https://acmicpc.top/2026/01/25/write_a_c_compiler/Chapter3.1-Frontend/index.html">
+<meta property="og:site_name" content="江欣婷&#39;s博客">
+<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  添加对二元运算符 +、-、*、&#x2F;、% 的支持。 Lexer 新增 4 种 token，Plus、Star、Slash、Percent。- 在 Unary 中已经作为 Hyphen 添加了，在 Lexer 阶段不会区分 token 在语义上的区别。 Parser 新增 二元表达式">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-25T12:38:23.000Z">
+<meta property="article:modified_time" content="2026-01-25T14:06:09.597Z">
+<meta property="article:author" content="江欣婷">
+<meta property="article:tag" content="compiler">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>从零开始编写 C 编译器 Chapter 3.1 | Frontend - 江欣婷&#39;s博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="江欣婷's博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Hsin&#39;s Notebook</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 3.1 | Frontend"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        江欣婷
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-25 20:38" pubdate>
+          2026年1月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 3.1 | Frontend</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a
+C Compiler</em></p>
+</blockquote>
+<p>添加对二元运算符
+<code>+</code>、<code>-</code>、<code>*</code>、<code>/</code>、<code>%</code>
+的支持。</p>
+<h2 id="lexer">Lexer</h2>
+<p>新增 4 种
+token，<code>Plus</code>、<code>Star</code>、<code>Slash</code>、<code>Percent</code>。<code>-</code>
+在 Unary 中已经作为 <code>Hyphen</code> 添加了，在 Lexer 阶段不会区分
+token 在语义上的区别。</p>
+<h2 id="parser">Parser</h2>
+<p>新增 二元表达式 和 二元运算符。定义如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">exp = Constant(int)<br>    | Unary(unary_operator, exp)<br>    | Binary(binary_operator, exp, exp)<br>binary_operator = Add | Subtract | Multiply | Divide | Remainder<br></code></pre></td></tr></table></figure></p>
+<p>在 Parser 中需要区分 <code>Unary negate</code> 和
+<code>Binary Subtract</code>，取决于 <code>Hyphen</code>
+在表达式的哪个位置出现。</p>
+<p>二元表达式也可以嵌套，这时需要注意操作符的优先级。例如表达式
+<code>1 + 2 * 3</code>，正确的解析应该为
+<code>1 + (2 * 3)</code>，对应的 AST 如下。<code>+</code>
+的两个操作数应该为 <code>1</code> 和 <code>(2 * 3)</code>。
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Binary (Add, <br>        Constant(1),<br>        Binary (Star, Constant(2), Constant(3))<br></code></pre></td></tr></table></figure></p>
+<p>不区分优先级，很可能解析出如下的 AST吗，即解析为
+<code>(1 + 2) * 3</code>，根节点为 <code>*</code>，两个操作数为
+<code>(1 + 2)</code> 和 <code>3</code>。 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Binary (Multiply,<br>        Binary (Add, Constant(1), Constant(2),<br>        Constant(3))<br></code></pre></td></tr></table></figure></p>
+<p>同时对于同优先级的运算，应该符合 <strong>左结合律</strong>，即
+<code>1 + 2 + 3 + 4</code> 应解析为 <code>((1 + 2) + 3) + 4</code>。</p>
+<p>我们很自然可以写出如下的产生式规则: <figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;exp&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span> | &lt;exp&gt; &lt;binop&gt; &lt;exp&gt;<br></code></pre></td></tr></table></figure></p>
+<p>一个二元表达式包括一个表达式，然后是一个二元运算符，然后是另一个表达式。这确实是正确的形式文法，但是不能正确的通过
+<em>递归下降解析器</em>
+进行解析。<code>&lt;exp&gt; ::= &lt;exp&gt; &lt;binoop&gt; &lt;exp&gt;</code>
+是左递归的，即一个 <strong>非终结符</strong>
+出现在最左边第一个位置。当调用 <code>parse_exp</code>
+的时候，由于左边第一个符号为 <code>&lt;exp&gt;</code>，会继续调用
+<code>parse_exp</code>；此时依然可能满足上述规则，继续调用
+<code>parse_exp</code>... <code>parse_exp</code> 在未消耗任何 token
+就进行递归，会导致无穷的递归。</p>
+<h3 id="refactor-grammar">refactor Grammar</h3>
+<p>一种不太讨巧的方法是，通过重写产生式规则来避免左递归。考虑如下的形式文法：
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;term&gt; &#123; (<span class="hljs-string">&quot;+&quot;</span> | <span class="hljs-string">&quot;-&quot;</span>) &lt;term&gt; &#125;<br>&lt;term&gt; ::= &lt;factor&gt; &#123; (<span class="hljs-string">&quot;*&quot;</span> | <span class="hljs-string">&quot;/&quot;</span> | <span class="hljs-string">&quot;%&quot;</span>) &lt;factor&gt; &#125;<br>&lt;factor&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;factor&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br></code></pre></td></tr></table></figure></p>
+<p>将优先级进行分层，定义为不同的非终结符，这样就只有唯一的解析诸如
+<code>1 + 2 * 3</code>
+的方法，且不会产生左递归。其中花括号表示重复，即一个单独的
+<code>&lt;exp&gt;</code> 可以通过 <code>+</code>、<code>-</code>
+运算符连接无穷个 <code>&lt;term&gt;</code>，例如
+<code>&lt;term&gt; + &lt;term&gt; - &lt;term&gt;</code></p>
+<p>表达式 <code>1 + 2 * 3</code> 的解析如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">exp1 = 1 + term1<br>term1 = 2 * 3<br></code></pre></td></tr></table></figure></p>
+<p>这种方法虽然可行，但随着运算符优先级层数的增加，会变的越来越笨重。目前我们已有三个优先级层级（如果将
+<code>&lt;factor&gt;</code>
+计入在内），之后每新增一个优先层级，都需要新定义一个非终结符，且为每个已有的非终结符新增对该非终结符的产生式规则，同时还需要编写新的
+<code>parse</code> 函数。</p>
+<h3 id="precedence-climbing">Precedence Climbing</h3>
+<p>优先级爬升(Precedence Climbing)
+是一个更简洁的解析二元运算符方法。它能够处理形如
+<code>&lt;exp&gt; &lt;binop&gt; &lt;exp&gt;</code>
+的产生式规则，同时正确遵循每个二元运算符的优先级。在优先级爬升方法中，每个运算符都被赋予一个数值型的优先级（precedence
+level），而 <code>parse_exp</code>
+函数在调用时会接收一个最小优先级（minimum precedence
+level）作为参数，接下来的解析部分优先级只能高于这个最小优先级。这样当解析
+<code>1 + 2 * 3</code> 的时候，解析完
+<code>1 +</code>时，在解析右操作数时，可以正确解析 <code>2 * 3</code>
+而不是将 2 作为右操作数。</p>
+<p>我们可以使用优先级爬升来解析二元表达式，同时继续使用递归下降来解析语言中的其他结构。新的形式文法如下：
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;factor&gt; | &lt;exp&gt; &lt;binop&gt; &lt;exp&gt;<br>&lt;factor&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;factor&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br>&lt;binop&gt; ::= <span class="hljs-string">&quot;-&quot;</span> | <span class="hljs-string">&quot;+&quot;</span> | <span class="hljs-string">&quot;*&quot;</span> | <span class="hljs-string">&quot;/&quot;</span> | <span class="hljs-string">&quot;%&quot;</span><br></code></pre></td></tr></table></figure></p>
+<p>将之前的 <code>&lt;exp&gt;</code> 重新命名为
+<code>&lt;factor&gt;</code>，因为该符号可以在一个表达式中作为因子出现。唯一区别为，现在
+<code>()</code> 内可以出现二元表达式。这意味着 <code>(1 + 2)</code>
+是一个 <code>&lt;factor&gt;</code>，然而 <code>-1 + 2</code> 不是一个
+<code>&lt;factor&gt;</code> 而是 <code>&lt;exp&gt;</code>，因为
+<code>&lt;unop&gt; &lt;exp&gt;</code> 不是 <code>&lt;factor&gt;</code>
+的产生式规则。</p>
+<p>一个 <code>&lt;exp&gt;</code> 要么是一个二元运算，要么是一个
+<code>&lt;factor&gt;</code>。由于 <code>&lt;exp&gt;</code> 和
+<code>&lt;factor&gt;</code>
+的文法规则相互引用，因此用于解析这两个符号的函数是相互递归（mutually
+recursive）的。但他们都生成相同的 AST 结点，即 <code>exp</code>
+结点。</p>
+<p>解析 <code>factor</code> 的伪代码如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_factor(tokens):<br>    next_token = peek(tokens)<br>    if next_token is an int:<br>        --snip--<br>    else if next_token is &quot;~&quot; or &quot;-&quot;:<br>        operator = parse_unop(tokens)<br>        inner_exp = parse_factor(tokens)<br>        return Unary(operator, inner_exp)<br>    else if next_token == &quot;(&quot;:<br>        take_token(tokens)<br>        inner_exp = parse_exp(tokens)<br>        expect(&quot;)&quot;, tokens)<br>        return inner_exp<br>    else:<br>        fail(&quot;Malformed factor&quot;)<br></code></pre></td></tr></table></figure></p>
+<p>和上一张 <code>parse_exp</code> 的代码很像，只是在不同位置调用
+<code>parse_factor</code> 和 <code>parse_exp</code>。</p>
+<p>对于 <code>parse_exp</code>，先考虑一个化简的版本：仅处理
+<code>+</code> 和 <code>-</code>
+运算符，只需要实现左结合。在这种情况下，右操作数只能为
+<code>&lt;factor&gt;</code>。可以使用如下伪代码来处理：
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_exp(tokens):<br>    left = parse_factor(tokens)<br>    next_token = peek(tokens)<br>    while next_token is &quot;+&quot; or &quot;-&quot;:<br>        operator = parse_binop(tokens)<br>        right = parse_factor(tokens)<br>        left = Binary(operator, left, right)<br>        next_token = peek(tokens)<br>    return left<br></code></pre></td></tr></table></figure></p>
+<p>首先处理第一个 <code>factor</code> 作为左操作数，消耗运算符后，通过
+<code>parse_factor</code> 获得下一个
+<code>factor</code>,即右操作数。之后将其封装为 AST
+结点，并该结点作为新的左操作数。</p>
+<p>接下来考虑添加运算符优先级。此时右操作数可能不再是
+<code>factor</code> 而是 <code>exp</code>。考虑
+<code>1 + 2 * 3 + 4</code> 应解析为
+<code>(1 + (2 * 3)) + 4</code>。整个表达式的右操作数为一个
+<code>factor 4</code>。而内部表达式的右操作数为
+<code>exp (2 * 3)</code>。可以发现，如果最外层的运算符为<code>+</code>、<code>-</code>，且右操作数为一个
+<code>exp</code>，则该 <code>exp</code> 中的运算符必须为
+<code>*</code>、<code>/</code>、<code>%</code>。如果最外层运算符为
+<code>*</code>、<code>/</code>、<code>%</code> 时，右操作数必定为一个
+<code>factor</code>。即 <code>e1 &lt;binop&gt; e2</code>
+时，<code>e2</code> 中所有运算符优先级必须严格高于
+<code>&lt;binop&gt;</code>。</p>
+<p>这样就可以在上述伪代码基础上稍作修改，得到完整的
+<code>parse_exp</code> 代码： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_exp(tokens, min_prec):<br>    left = parse_factor(tokens)<br>    next_token = peek(tokens)<br>    while next_token is a binary operator and precedence(next_token) &gt;= min_prec:<br>        operator = parse_binop(tokens)<br>        right = parse_exp(tokens, precedence(next_token) + 1)<br>        left = Binary(operator, left, right)<br>        next_token = peek(tokens)<br>    return left<br></code></pre></td></tr></table></figure></p>
+<p>当 <code>next_token</code> 的优先级高于当前 <code>op</code>(即
+<code>min_prec</code>，当前允许解析的最低优先级)
+的时候，递归解析子表达式作为右操作数。反之，则返回上一级函数调用，执行左结合。</p>
+<p>例如输入 <code>1 + 2 * 3 + 4</code>，假设优先级 <code>*</code> 为
+<span class="math inline">\(20\)</span>，<code>+</code> 为 <span
+class="math inline">\(10\)</span>。 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">parse_exp(1 + 2 * 3 + 4, min_prec=0)<br>  left = parse_factor(1 + 2 * 3 + 4) → 1<br>  peek(+ 2 * 3 + 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 ≥ 0，进入循环<br><br>    operator = &#x27;+&#x27;<br>    right = parse_exp(2 * 3 + 4, min_prec=11)<br>      parse_exp(2 * 3 + 4, 11):<br>        left = parse_factor(2 * 3 + 4) → 2<br>        peek(* 3 + 4) → &#x27;*&#x27;，prec(&#x27;*&#x27;) = 20 ≥ 11，进入循环<br><br>          operator = &#x27;*&#x27;<br>          right = parse_exp(3 + 4, min_prec=21)<br><br>            parse_exp(3 + 4, 21):<br>              left = parse_factor(3 + 4) → 3<br>              peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 &lt; 21，不进入循环<br>              返回 left = 3<br><br>          right = 3<br>          left = (2 * 3)<br>          peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 &lt; 11，不进入循环<br>        返回 left = (2 * 3)<br><br>    right = (2 * 3)<br>    left = (1 + (2 * 3))<br>    peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 ≥ 0，继续循环<br><br>      operator = &#x27;+&#x27;<br>      right = parse_exp(4, min_prec=11)<br><br>        parse_exp(4, 11):<br>          left = parse_factor(4) → 4<br>          peek(EOF) → 无运算符，不进入循环<br>          返回 4<br><br>      right = 4<br>      left = ((1 + (2 * 3)) + 4)<br>      peek(EOF) → 无运算符，退出循环<br><br>  返回 ((1 + (2 * 3)) + 4)<br></code></pre></td></tr></table></figure></p>
+<h2 id="implementation">Implementation</h2>
+<p>函数式语言中，变量不可修改，所以写循环稍微费点劲。通过辅助函数
+<code>parse_exp_loop</code> 通过递归来实现。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs ocaml">parse_exp min_prec tokens =<br>  <span class="hljs-comment">(* like acc in tail recursive, initial value of left-associative *)</span><br>  <span class="hljs-keyword">let</span> initial_factor = parse_factor tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> next_token = <span class="hljs-type">Tok_stream</span>.peek tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> <span class="hljs-keyword">rec</span> parse_exp_loop left token =<br>    <span class="hljs-keyword">match</span> get_precedence token <span class="hljs-keyword">with</span><br>    <span class="hljs-comment">(* 1 + (2 * 3) =&gt; the right subexpression must have higher precedence than</span><br><span class="hljs-comment">       left *)</span><br>    | <span class="hljs-type">Some</span> prec <span class="hljs-keyword">when</span> prec &gt;= min_prec -&gt;<br>        <span class="hljs-keyword">let</span> operator = parse_binop tokens <span class="hljs-keyword">in</span><br>        <span class="hljs-keyword">let</span> right = parse_exp (prec + <span class="hljs-number">1</span>) tokens <span class="hljs-keyword">in</span><br>        <span class="hljs-keyword">let</span> result = <span class="hljs-type">Ast</span>.<span class="hljs-type">Binary</span> (operator, left, right) <span class="hljs-keyword">in</span><br>        parse_exp_loop result (<span class="hljs-type">Tok_stream</span>.peek tokens)<br>    <span class="hljs-comment">(* otherwise, just left-associative *)</span><br>    | _ -&gt; left<br>  <span class="hljs-keyword">in</span><br>  parse_exp_loop initial_factor next_token<br></code></pre></td></tr></table></figure></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/compiler/" class="category-chain-item">compiler</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/compiler/" class="print-no-link">#compiler</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从零开始编写 C 编译器 Chapter 3.1 | Frontend</div>
+      <div>https://acmicpc.top/2026/01/25/write_a_c_compiler/Chapter3.1-Frontend/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>江欣婷</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/01/26/write_a_c_compiler/Chapter3.2-IR/" title="从零开始编写 C 编译器 Chapter 3.2 | IR">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 3.2 | IR</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/23/write_a_c_compiler/Chapter2.3-Codegen/" title="从零开始编写 C 编译器 Chapter 2.3 | Backend">
+                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 2.3 | Backend</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
