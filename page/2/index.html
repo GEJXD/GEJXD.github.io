@@ -243,6 +243,128 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/03/23/MIT-6.S081-lab08/" target="_self">
+          MIT 6.S081 lab8：mmap | 内存映射文件
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/23/MIT-6.S081-lab08/" target="_self">
+        <div>
+          MIT 6.S081 Lab: mmap mmap 是操作系统中特别重要的一个特性。它允许我们将文件映射到进程的虚拟地址空间，使得我们可以像操作数组一样操作文件。在本次 Lab 中，我们需要在 xv6 中实现一个简化版的 mmap 系统调用。 核心难点在于：懒加载（Lazy Allocation） 的实现以及 VMA（Virtual Memory Area） 的管理。  1. 实验目标 实现 mm
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-03-23 19:17" pubdate>
+              2024-03-23
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/6-S081/">#6.S081</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/03/22/MIT-6.S081-lab07/" target="_self">
+          MIT 6.S081 lab6：Lazy alloc | 懒加载
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/22/MIT-6.S081-lab07/" target="_self">
+        <div>
+          本实验旨在通过修改 xv6 的缺页异常处理机制，实现内存的懒分配（Lazy Allocation）。当用户调用 sbrk() 时不立即分配物理内存，而是延迟到发生 Page Fault 时才按需分配。   1. 实验目标 (Goal) 传统的 sbrk() 系统调用会立即分配物理内存并映射页表。本实验要求： 1. 修改 sys_sbrk()，仅增加进程的 sz 而不实际分配内存。 2. 在 us
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-03-22 17:46" pubdate>
+              2024-03-22
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/6-S081/">#6.S081</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/03/01/MIT-6.S081-lab06/" target="_self">
           MIT 6.S081 lab5：Copy-on-Write | 写时复制
         </a>
@@ -688,128 +810,6 @@
             <i class="iconfont icon-date"></i>
             <time datetime="2024-02-25 10:40" pubdate>
               2024-02-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/6-S081/">#6.S081</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/02/25/MIT-6.S081-lab01/" target="_self">
-          MIT 6.S081 Lab1 util：Unix utilities | UNIX 实用程序
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab01/" target="_self">
-        <div>
-          前置准备 主要内容为如何使用已有的系统调用编写用户程序, 例如ls、xargs、find等常用命令的实现。 根据课程官网的要求，需要看完Lecture 1,阅读完教材第一章\(Operation \space System \space interfaces\)。 此外，实验手册中的Hints很重要，大多数实验跟着提示一步一步实现都能完成。 Sleep (easy) Statement  为xv6
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-25 03:07" pubdate>
-              2024-02-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/6-S081/">#6.S081</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/02/08/MIT-6.S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/" target="_self">
-          MIT 6.S081 lab0：配置xv6环境+vscode调试
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/08/MIT-6.S081-lab0-%E9%85%8D%E7%8E%AF%E5%A2%83/" target="_self">
-        <div>
-          前言 系统为Archlinux物理机，环境如下：  使用的xv6版本为2021版，运行环境为vscode + clangd + gbd。 安装依赖 参考：https://pdos.csail.mit.edu/6.828/2021/tools.html 首先安装转义riscv64的包： 1sudo pacman -S riscv64-linux-gnu-binutils riscv64-linux-
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-08 06:51" pubdate>
-              2024-02-08
             </time>
           </div>
         
