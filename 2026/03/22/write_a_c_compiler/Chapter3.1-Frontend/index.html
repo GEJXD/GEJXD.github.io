@@ -21,15 +21,15 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  添加对二元运算符 +、-、*、&#x2F;、% 的支持。 Lexer 新增 4 种 token，Plus、Star、Slash、Percent。- 在 Unary 中已经作为 Hyphen 添加了，在 Lexer 阶段不会区分 token 在语义上的区别。 Parser 新增 二元表达式">
+    <meta name="description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  添加对二元运算符 +、-、*、&#x2F;、% 的支持。 Frontent Lexer 新增 4 种 token，Plus、Star、Slash、Percent。- 在 Unary 中已经作为 Hyphen 添加了，在 Lexer 阶段不会区分 token 在语义上的区别。 Parser">
 <meta property="og:type" content="article">
-<meta property="og:title" content="从零开始编写 C 编译器 Chapter 3.1 | Frontend">
-<meta property="og:url" content="https://acmicpc.top/2026/01/25/write_a_c_compiler/Chapter3.1-Frontend/index.html">
+<meta property="og:title" content="从零开始编写 C 编译器 Chapter 3.1 | Binary Operator">
+<meta property="og:url" content="https://acmicpc.top/2026/03/22/write_a_c_compiler/Chapter3.1-Frontend/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  添加对二元运算符 +、-、*、&#x2F;、% 的支持。 Lexer 新增 4 种 token，Plus、Star、Slash、Percent。- 在 Unary 中已经作为 Hyphen 添加了，在 Lexer 阶段不会区分 token 在语义上的区别。 Parser 新增 二元表达式">
+<meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  添加对二元运算符 +、-、*、&#x2F;、% 的支持。 Frontent Lexer 新增 4 种 token，Plus、Star、Slash、Percent。- 在 Unary 中已经作为 Hyphen 添加了，在 Lexer 阶段不会区分 token 在语义上的区别。 Parser">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-01-25T12:38:23.000Z">
-<meta property="article:modified_time" content="2026-01-25T14:06:09.597Z">
+<meta property="article:published_time" content="2026-03-22T11:31:00.000Z">
+<meta property="article:modified_time" content="2026-03-22T11:38:30.149Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
@@ -38,7 +38,7 @@
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>从零开始编写 C 编译器 Chapter 3.1 | Frontend - 江欣婷&#39;s博客</title>
+  <title>从零开始编写 C 编译器 Chapter 3.1 | Binary Operator - 江欣婷&#39;s博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -76,7 +76,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":1},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -216,7 +216,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 3.1 | Frontend"></span>
+            <span id="subtitle" data-typed-text="从零开始编写 C 编译器 Chapter 3.1 | Binary Operator"></span>
           
         </div>
 
@@ -232,8 +232,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-01-25 20:38" pubdate>
-          2026年1月25日 晚上
+        <time datetime="2026-03-22 19:31" pubdate>
+          2026年3月22日 晚上
         </time>
       </span>
     
@@ -244,7 +244,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2k 字
+          2.2k 字
         
       </span>
     
@@ -255,7 +255,7 @@
         
         
         
-          17 分钟
+          19 分钟
         
       </span>
     
@@ -301,7 +301,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 3.1 | Frontend</h1>
+            <h1 id="seo-header">从零开始编写 C 编译器 Chapter 3.1 | Binary Operator</h1>
             
             
               <div class="markdown-body">
@@ -313,12 +313,13 @@ C Compiler</em></p>
 <p>添加对二元运算符
 <code>+</code>、<code>-</code>、<code>*</code>、<code>/</code>、<code>%</code>
 的支持。</p>
-<h2 id="lexer">Lexer</h2>
+<h2 id="frontent">Frontent</h2>
+<h3 id="lexer">Lexer</h3>
 <p>新增 4 种
 token，<code>Plus</code>、<code>Star</code>、<code>Slash</code>、<code>Percent</code>。<code>-</code>
 在 Unary 中已经作为 <code>Hyphen</code> 添加了，在 Lexer 阶段不会区分
 token 在语义上的区别。</p>
-<h2 id="parser">Parser</h2>
+<h3 id="parser">Parser</h3>
 <p>新增 二元表达式 和 二元运算符。定义如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">exp = Constant(int)<br>    | Unary(unary_operator, exp)<br>    | Binary(binary_operator, exp, exp)<br>binary_operator = Add | Subtract | Multiply | Divide | Remainder<br></code></pre></td></tr></table></figure></p>
 <p>在 Parser 中需要区分 <code>Unary negate</code> 和
 <code>Binary Subtract</code>，取决于 <code>Hyphen</code>
@@ -343,7 +344,7 @@ token 在语义上的区别。</p>
 <code>parse_exp</code>；此时依然可能满足上述规则，继续调用
 <code>parse_exp</code>... <code>parse_exp</code> 在未消耗任何 token
 就进行递归，会导致无穷的递归。</p>
-<h3 id="refactor-grammar">refactor Grammar</h3>
+<h4 id="refactor-grammar">refactor Grammar</h4>
 <p>一种不太讨巧的方法是，通过重写产生式规则来避免左递归。考虑如下的形式文法：
 <figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;term&gt; &#123; (<span class="hljs-string">&quot;+&quot;</span> | <span class="hljs-string">&quot;-&quot;</span>) &lt;term&gt; &#125;<br>&lt;term&gt; ::= &lt;factor&gt; &#123; (<span class="hljs-string">&quot;*&quot;</span> | <span class="hljs-string">&quot;/&quot;</span> | <span class="hljs-string">&quot;%&quot;</span>) &lt;factor&gt; &#125;<br>&lt;factor&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;factor&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br></code></pre></td></tr></table></figure></p>
 <p>将优先级进行分层，定义为不同的非终结符，这样就只有唯一的解析诸如
@@ -357,7 +358,7 @@ token 在语义上的区别。</p>
 <code>&lt;factor&gt;</code>
 计入在内），之后每新增一个优先层级，都需要新定义一个非终结符，且为每个已有的非终结符新增对该非终结符的产生式规则，同时还需要编写新的
 <code>parse</code> 函数。</p>
-<h3 id="precedence-climbing">Precedence Climbing</h3>
+<h4 id="precedence-climbing">Precedence Climbing</h4>
 <p>优先级爬升(Precedence Climbing)
 是一个更简洁的解析二元运算符方法。它能够处理形如
 <code>&lt;exp&gt; &lt;binop&gt; &lt;exp&gt;</code>
@@ -418,6 +419,16 @@ class="math inline">\(10\)</span>。 <figure class="highlight plaintext"><table>
 <h2 id="implementation">Implementation</h2>
 <p>函数式语言中，变量不可修改，所以写循环稍微费点劲。通过辅助函数
 <code>parse_exp_loop</code> 通过递归来实现。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs ocaml">parse_exp min_prec tokens =<br>  <span class="hljs-comment">(* like acc in tail recursive, initial value of left-associative *)</span><br>  <span class="hljs-keyword">let</span> initial_factor = parse_factor tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> next_token = <span class="hljs-type">Tok_stream</span>.peek tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> <span class="hljs-keyword">rec</span> parse_exp_loop left token =<br>    <span class="hljs-keyword">match</span> get_precedence token <span class="hljs-keyword">with</span><br>    <span class="hljs-comment">(* 1 + (2 * 3) =&gt; the right subexpression must have higher precedence than</span><br><span class="hljs-comment">       left *)</span><br>    | <span class="hljs-type">Some</span> prec <span class="hljs-keyword">when</span> prec &gt;= min_prec -&gt;<br>        <span class="hljs-keyword">let</span> operator = parse_binop tokens <span class="hljs-keyword">in</span><br>        <span class="hljs-keyword">let</span> right = parse_exp (prec + <span class="hljs-number">1</span>) tokens <span class="hljs-keyword">in</span><br>        <span class="hljs-keyword">let</span> result = <span class="hljs-type">Ast</span>.<span class="hljs-type">Binary</span> (operator, left, right) <span class="hljs-keyword">in</span><br>        parse_exp_loop result (<span class="hljs-type">Tok_stream</span>.peek tokens)<br>    <span class="hljs-comment">(* otherwise, just left-associative *)</span><br>    | _ -&gt; left<br>  <span class="hljs-keyword">in</span><br>  parse_exp_loop initial_factor next_token<br></code></pre></td></tr></table></figure></p>
+<h2 id="ir-generate">IR Generate</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definition)<br>function_definition = Function(identifier, instruction* body)<br>instruction = Return(val)<br>            | Unary(unary_operator, val src, val dst)<br>            | Binary(binary_operator, val src1, val src2, val dst)<br>val = Constant(int) | Var(identifier)<br>unary_operator = Complement | Negate<br>binary_operator = Add | Subtract | Multiply | Divide | Remainder<br></code></pre></td></tr></table></figure>
+<p>将 AST 中的二元表达式转换为 TACKY
+指令序列的过程与处理一元表达式非常相似，只是现在需要处理两个操作数。指令结构：<code>Binary(binary_operator, val src1, val src2, val dst)</code>。</p>
+<p>转换为 TACKY 代码也和一元运算符类似。首先生成 TACKY
+指令来分别评估第一个操作数 <code>e1</code> 和第二个操作数
+<code>e2</code>。之后调用 <code>make_temporary()</code>
+生成一个新的临时变量作为运算结果的目标地址（<code>dst</code>）。将转换后的二元运算符、两个操作数的值以及目标地址封装成一条
+<code>Binary</code>
+指令，并添加到指令序列中。最后返回该临时变量，供上层表达式使用 。</p>
 
                 
               </div>
@@ -463,8 +474,8 @@ class="math inline">\(10\)</span>。 <figure class="highlight plaintext"><table>
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>从零开始编写 C 编译器 Chapter 3.1 | Frontend</div>
-      <div>https://acmicpc.top/2026/01/25/write_a_c_compiler/Chapter3.1-Frontend/</div>
+      <div>从零开始编写 C 编译器 Chapter 3.1 | Binary Operator</div>
+      <div>https://acmicpc.top/2026/03/22/write_a_c_compiler/Chapter3.1-Frontend/</div>
     </div>
     <div class="license-meta">
       
@@ -476,7 +487,7 @@ class="math inline">\(10\)</span>。 <figure class="highlight plaintext"><table>
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年1月25日</div>
+          <div>2026年3月22日</div>
         </div>
       
       
@@ -508,9 +519,9 @@ class="math inline">\(10\)</span>。 <figure class="highlight plaintext"><table>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/01/26/write_a_c_compiler/Chapter3.2-IR/" title="从零开始编写 C 编译器 Chapter 3.2 | IR">
+                      <a href="/2026/04/11/MIT-6.S081/" title="MIT 6.S081 All in one">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 3.2 | IR</span>
+                        <span class="hidden-mobile">MIT 6.S081 All in one</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

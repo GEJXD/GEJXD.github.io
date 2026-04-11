@@ -65,7 +65,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"acmicpc.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":1},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -243,15 +243,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/03/23/MIT-6.S081-lab08/" target="_self">
-          MIT 6.S081 lab8：mmap | 内存映射文件
+        <a href="/2024/01/20/std-chrono%E6%97%B6%E9%97%B4%E5%BA%93%E6%80%BB%E7%BB%93/" target="_self">
+          std::chrono时间库总结
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/23/MIT-6.S081-lab08/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/01/20/std-chrono%E6%97%B6%E9%97%B4%E5%BA%93%E6%80%BB%E7%BB%93/" target="_self">
         <div>
-          MIT 6.S081 Lab: mmap mmap 是操作系统中特别重要的一个特性。它允许我们将文件映射到进程的虚拟地址空间，使得我们可以像操作数组一样操作文件。在本次 Lab 中，我们需要在 xv6 中实现一个简化版的 mmap 系统调用。 核心难点在于：懒加载（Lazy Allocation） 的实现以及 VMA（Virtual Memory Area） 的管理。  1. 实验目标 实现 mm
+          基本概念 C++11中引入了一个新的关于时间的库，所有内容都包括在std::chrono中，使用时直接引用头文件#include&lt;chrono&gt;和命名空间std::chrono即可。 std::chrono库中主要有3个概念，时钟(Clocks)、时间段(Duration)、时间点(timePoint)。 时钟(Clocks) 顾名思义，就是和计时的相关类。主要就有3个，分别是：  系
         </div>
       </a>
 
@@ -259,8 +259,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2024-03-23 19:17" pubdate>
-              2024-03-23
+            <time datetime="2024-01-20 00:42" pubdate>
+              2024-01-20
             </time>
           </div>
         
@@ -275,7 +275,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  <a href="/categories/modern-cpp/" class="category-chain-item">modern-cpp</a>
   
   
 
@@ -290,7 +290,7 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/6-S081/">#6.S081</a>
+              <a href="/tags/modern-cpp/">#modern-cpp</a>
             
           </div>
         
@@ -304,15 +304,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/03/22/MIT-6.S081-lab07/" target="_self">
-          MIT 6.S081 lab6：Lazy alloc | 懒加载
+        <a href="/2023/09/06/The%202022%20ICPC%20Asia%20Xian%20Regional%20Contest/" target="_self">
+          The 2022 ICPC Asia Xian Regional Contest
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/22/MIT-6.S081-lab07/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2023/09/06/The%202022%20ICPC%20Asia%20Xian%20Regional%20Contest/" target="_self">
         <div>
-          本实验旨在通过修改 xv6 的缺页异常处理机制，实现内存的懒分配（Lazy Allocation）。当用户调用 sbrk() 时不立即分配物理内存，而是延迟到发生 Page Fault 时才按需分配。   1. 实验目标 (Goal) 传统的 sbrk() 系统调用会立即分配物理内存并映射页表。本实验要求： 1. 修改 sys_sbrk()，仅增加进程的 sz 而不实际分配内存。 2. 在 us
+          我好菜啊
         </div>
       </a>
 
@@ -320,8 +320,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2024-03-22 17:46" pubdate>
-              2024-03-22
+            <time datetime="2023-09-06 18:11" pubdate>
+              2023-09-06
             </time>
           </div>
         
@@ -336,7 +336,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  <a href="/categories/%E7%AE%97%E6%B3%95%E9%A2%98%E8%A7%A3/" class="category-chain-item">算法题解</a>
   
   
 
@@ -351,7 +351,7 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/6-S081/">#6.S081</a>
+              <a href="/tags/codeforces/">#codeforces</a>
             
           </div>
         
@@ -365,15 +365,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/03/01/MIT-6.S081-lab06/" target="_self">
-          MIT 6.S081 lab5：Copy-on-Write | 写时复制
+        <a href="/2023/09/01/AtCoder%20Beginner%20Contest%20317/" target="_self">
+          AtCoder Beginner Contest 317
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/01/MIT-6.S081-lab06/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2023/09/01/AtCoder%20Beginner%20Contest%20317/" target="_self">
         <div>
-          1. 实验背景与原理 在原始的 xv6 中，fork() 系统调用通过 uvmcopy() 分配物理内存并直接拷贝父进程的所有内容。对于大型进程，这种全量拷贝极其耗时且浪费内存。 Copy-on-Write (COW) 的核心思想是：延迟分配。 * fork 时：父子进程共享相同的物理页，将这些页设置为只读，并在 PTE 中标记为 COW 页。 * 写操作时：当任何一个进程尝试写入该页，硬件触发
+          我好菜啊
         </div>
       </a>
 
@@ -381,8 +381,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2024-03-01 03:20" pubdate>
-              2024-03-01
+            <time datetime="2023-09-01 20:01" pubdate>
+              2023-09-01
             </time>
           </div>
         
@@ -397,7 +397,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  <a href="/categories/%E7%AE%97%E6%B3%95%E9%A2%98%E8%A7%A3/" class="category-chain-item">算法题解</a>
   
   
 
@@ -412,7 +412,7 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/6-S081/">#6.S081</a>
+              <a href="/tags/atcoder/">#atcoder</a>
             
           </div>
         
@@ -426,15 +426,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/02/29/MIT-6.S081-lab04/" target="_self">
-          MIT 6.S081 lab4：traps | 陷入
+        <a href="/2023/08/30/Codeforces%20Round%20894%20(Div.%203)/" target="_self">
+          Codeforces Round 894 (Div. 3)
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/29/MIT-6.S081-lab04/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2023/08/30/Codeforces%20Round%20894%20(Div.%203)/" target="_self">
         <div>
-          lab4 - traps 前置准备 主要内容为探索陷阱处理机制。 根据课程官网的要求，需要阅读完教材的第四章\(Page \space tables\)。并且读懂下列源代码：kernel/memlayout.h, kernel/vm.c, kernel/kalloc.c, kernel/riscv.h, user/exec.c。 相关笔记参考: lecture 4 Notes 将pgtbl分支所有
+          我好菜啊
         </div>
       </a>
 
@@ -442,8 +442,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-29 18:20" pubdate>
-              2024-02-29
+            <time datetime="2023-08-30 16:41" pubdate>
+              2023-08-30
             </time>
           </div>
         
@@ -458,7 +458,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  <a href="/categories/%E7%AE%97%E6%B3%95%E9%A2%98%E8%A7%A3/" class="category-chain-item">算法题解</a>
   
   
 
@@ -473,7 +473,7 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/6-S081/">#6.S081</a>
+              <a href="/tags/codeforces/">#codeforces</a>
             
           </div>
         
@@ -487,15 +487,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/02/29/MIT-6.S081-lab04%20Notes/" target="_self">
-          MIT 6.S081 第四章笔记 | 陷入指令和中断
+        <a href="/2023/08/29/Codeforces%20Round%20893%20(Div.%202)/" target="_self">
+          Codeforces Round 893 (Div. 2)
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/29/MIT-6.S081-lab04%20Notes/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2023/08/29/Codeforces%20Round%20893%20(Div.%202)/" target="_self">
         <div>
-          4.1 ISA &amp; Assembly Language \(ISA\): \(Instruction \space Set\)。 \(workflow\): \(C \rightarrow Assembly(.S/.asm) \rightarrow binary(object.o)\) 汇编语言没有明确的工作流，只是一行一行的执行指令。汇编语言是基于寄存器进行操作的，而不是内存。 \(RI
+          我好菜啊
         </div>
       </a>
 
@@ -503,8 +503,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-29 03:20" pubdate>
-              2024-02-29
+            <time datetime="2023-08-29 00:04" pubdate>
+              2023-08-29
             </time>
           </div>
         
@@ -519,7 +519,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  <a href="/categories/%E7%AE%97%E6%B3%95%E9%A2%98%E8%A7%A3/" class="category-chain-item">算法题解</a>
   
   
 
@@ -534,7 +534,7 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/6-S081/">#6.S081</a>
+              <a href="/tags/codeforces/">#codeforces</a>
             
           </div>
         
@@ -548,15 +548,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/02/29/MIT-6.S081-lab05%20Notes/" target="_self">
-          MIT 6.S081 第五章笔记 | 页面故障
+        <a href="/2023/08/23/AtCoder%20Beginner%20Contest%20315/" target="_self">
+          AtCoder Beginner Contest 315
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/29/MIT-6.S081-lab05%20Notes/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2023/08/23/AtCoder%20Beginner%20Contest%20315/" target="_self">
         <div>
-          当视图访问 \(PTE_V\) 为 \(0\) 的页表, 或用户尝试访问 \(PTE_U\) 为 \(0\) / 内核尝试访问 $PTE_U 为 \(1\) 的页表， 或者是其他违反了 \(PTE_R\) 或 \(PTE_W\) 等 \(flag\) 的页表时就会出现 \(Page Faults\)。 一共有三种 \(Page Faults\): 1. \(load \space page \sp
+          我好菜啊
         </div>
       </a>
 
@@ -564,8 +564,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-29 03:20" pubdate>
-              2024-02-29
+            <time datetime="2023-08-23 03:04" pubdate>
+              2023-08-23
             </time>
           </div>
         
@@ -580,7 +580,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
+  <a href="/categories/%E7%AE%97%E6%B3%95%E9%A2%98%E8%A7%A3/" class="category-chain-item">算法题解</a>
   
   
 
@@ -595,251 +595,7 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/6-S081/">#6.S081</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/02/28/MIT-6.S081-lab03/" target="_self">
-          MIT 6.S081 lab3：page tables | 页表
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/28/MIT-6.S081-lab03/" target="_self">
-        <div>
-          lab3 - page table 前置准备 主要内容为熟悉页表遍历以及地址转换。 根据课程官网的要求，需要阅读完教材的第三章\(Page \space tables\)。并且读懂下列源代码：kernel/memlayout.h, kernel/vm.c, kernel/kalloc.c, kernel/riscv.h, user/exec.c。 相关笔记参考: lecture 3 Notes 将
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-28 18:20" pubdate>
-              2024-02-28
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/6-S081/">#6.S081</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/02/27/MIT-6.S081-lab03%20Notes/" target="_self">
-          MIT 6.S081 第三章笔记 | 页表
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/27/MIT-6.S081-lab03%20Notes/" target="_self">
-        <div>
-          页表让每个进程都拥有自己独立的虚拟内存，从而实现内存隔离。 3.1 Paging hardware 用户和内核都只能操作虚拟地址(\(virtual \space address\))，但是实际物理内存使用物理地址(\(physical \space address\))来索引。页表提供了虚拟地址到逻辑地址的转换。 xv6只使用了64位地址空间中的低39位，其中高\(27\)位为页面号，低\(12
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-27 18:20" pubdate>
-              2024-02-27
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/6-S081/">#6.S081</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/02/25/MIT-6.S081-lab02/" target="_self">
-          MIT 6.S081 Lab2：System Calls | 系统调用
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab02/" target="_self">
-        <div>
-          前置准备 主要内容为自己实现系统调用，或者优化已有的系统调用。 根据课程官网的要求，需要阅读完教材的第二章\(Operating \space system \space organization\)。并且读懂下列源代码：kernel/proc.h, kernel/defs.h, kernel/entry.S, kernel/main.c, user/initcode.S, user/init.c
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-25 11:30" pubdate>
-              2024-02-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/6-S081/">#6.S081</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/02/25/MIT-6.S081-lab02%20Notes/" target="_self">
-          MIT 6.S081 第二章笔记 | 操作系统结构
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/25/MIT-6.S081-lab02%20Notes/" target="_self">
-        <div>
-          操作系统应该实现三个功能：并发、隔离、交互。即能保证多个程序都能分到硬件资源；各个进程之间的内存、指令、数据相互隔离，一个进程崩溃不会影响到其他进程；进程之间能通过受控的接口来进行通信。 操作系统提供了高级别的抽象，来管理硬件资源。例如，用文件描述符来抽象磁盘、内存、管道等资源，用户程序能通过简单的read、write、close来访问所有存储资源，而不用关心是和磁盘、内存、管道、还是标准输入输出
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-25 10:40" pubdate>
-              2024-02-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/6-S081/" class="category-chain-item">6.S081</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/6-S081/">#6.S081</a>
+              <a href="/tags/atcoder/">#atcoder</a>
             
           </div>
         
@@ -851,7 +607,7 @@
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#board">3</a><a class="extend next" rel="next" href="/page/3/#board"><i class="iconfont icon-arrowright"></i></a>
+      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
     </span>
   </nav>
 
