@@ -29,7 +29,7 @@
 <meta property="og:description" content="Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 Write a C Compiler  我们成功生成了一元运算符的 AST，但将 AST 转换成 Assembly AST 却明显不如上一章简单。AST 中的 exp 结点拥有递归结构，而 Assembly AST 中的 operand 和 instruction 结点无法直接表达这种结构。我们需要将嵌套的表达式，通过">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-01-22T13:10:31.000Z">
-<meta property="article:modified_time" content="2026-01-25T12:10:52.536Z">
+<meta property="article:modified_time" content="2026-04-11T05:20:26.360Z">
 <meta property="article:author" content="江欣婷">
 <meta property="article:tag" content="compiler">
 <meta name="twitter:card" content="summary_large_image">
@@ -445,29 +445,6 @@ AST。<code>val</code> 只能为常量 <code>Consttant(int)</code>
 
 
 
-              
-                <div class="post-prevnext my-3">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2026/01/23/write_a_c_compiler/Chapter2.3-Codegen/" title="从零开始编写 C 编译器 Chapter 2.3 | Backend">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 2.3 | Backend</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2026/01/22/write_a_c_compiler/Chapter2.1-Frontend/" title="从零开始编写 C 编译器 Chapter 2.1 | Front End">
-                        <span class="hidden-mobile">从零开始编写 C 编译器 Chapter 2.1 | Front End</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
               
             </div>
 
