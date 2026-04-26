@@ -307,128 +307,56 @@
               <div class="markdown-body">
                 
                 <blockquote>
-<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a
-C Compiler</em></p>
+<p>Note: 所有代码、定义、术语命名都参考 Nora Sandler 的书籍 <em>Write a C Compiler</em></p>
 </blockquote>
-<p>添加对二元运算符
-<code>+</code>、<code>-</code>、<code>*</code>、<code>/</code>、<code>%</code>
-的支持。</p>
-<h2 id="frontent">Frontent</h2>
-<h3 id="lexer">Lexer</h3>
-<p>新增 4 种
-token，<code>Plus</code>、<code>Star</code>、<code>Slash</code>、<code>Percent</code>。<code>-</code>
-在 Unary 中已经作为 <code>Hyphen</code> 添加了，在 Lexer 阶段不会区分
-token 在语义上的区别。</p>
-<h3 id="parser">Parser</h3>
-<p>新增 二元表达式 和 二元运算符。定义如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">exp = Constant(int)<br>    | Unary(unary_operator, exp)<br>    | Binary(binary_operator, exp, exp)<br>binary_operator = Add | Subtract | Multiply | Divide | Remainder<br></code></pre></td></tr></table></figure></p>
-<p>在 Parser 中需要区分 <code>Unary negate</code> 和
-<code>Binary Subtract</code>，取决于 <code>Hyphen</code>
-在表达式的哪个位置出现。</p>
-<p>二元表达式也可以嵌套，这时需要注意操作符的优先级。例如表达式
-<code>1 + 2 * 3</code>，正确的解析应该为
-<code>1 + (2 * 3)</code>，对应的 AST 如下。<code>+</code>
-的两个操作数应该为 <code>1</code> 和 <code>(2 * 3)</code>。
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Binary (Add, <br>        Constant(1),<br>        Binary (Star, Constant(2), Constant(3))<br></code></pre></td></tr></table></figure></p>
-<p>不区分优先级，很可能解析出如下的 AST吗，即解析为
-<code>(1 + 2) * 3</code>，根节点为 <code>*</code>，两个操作数为
-<code>(1 + 2)</code> 和 <code>3</code>。 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Binary (Multiply,<br>        Binary (Add, Constant(1), Constant(2),<br>        Constant(3))<br></code></pre></td></tr></table></figure></p>
-<p>同时对于同优先级的运算，应该符合 <strong>左结合律</strong>，即
-<code>1 + 2 + 3 + 4</code> 应解析为 <code>((1 + 2) + 3) + 4</code>。</p>
-<p>我们很自然可以写出如下的产生式规则: <figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;exp&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span> | &lt;exp&gt; &lt;binop&gt; &lt;exp&gt;<br></code></pre></td></tr></table></figure></p>
-<p>一个二元表达式包括一个表达式，然后是一个二元运算符，然后是另一个表达式。这确实是正确的形式文法，但是不能正确的通过
-<em>递归下降解析器</em>
-进行解析。<code>&lt;exp&gt; ::= &lt;exp&gt; &lt;binoop&gt; &lt;exp&gt;</code>
-是左递归的，即一个 <strong>非终结符</strong>
-出现在最左边第一个位置。当调用 <code>parse_exp</code>
-的时候，由于左边第一个符号为 <code>&lt;exp&gt;</code>，会继续调用
-<code>parse_exp</code>；此时依然可能满足上述规则，继续调用
-<code>parse_exp</code>... <code>parse_exp</code> 在未消耗任何 token
-就进行递归，会导致无穷的递归。</p>
-<h4 id="refactor-grammar">refactor Grammar</h4>
-<p>一种不太讨巧的方法是，通过重写产生式规则来避免左递归。考虑如下的形式文法：
-<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;term&gt; &#123; (<span class="hljs-string">&quot;+&quot;</span> | <span class="hljs-string">&quot;-&quot;</span>) &lt;term&gt; &#125;<br>&lt;term&gt; ::= &lt;factor&gt; &#123; (<span class="hljs-string">&quot;*&quot;</span> | <span class="hljs-string">&quot;/&quot;</span> | <span class="hljs-string">&quot;%&quot;</span>) &lt;factor&gt; &#125;<br>&lt;factor&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;factor&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br></code></pre></td></tr></table></figure></p>
-<p>将优先级进行分层，定义为不同的非终结符，这样就只有唯一的解析诸如
-<code>1 + 2 * 3</code>
-的方法，且不会产生左递归。其中花括号表示重复，即一个单独的
-<code>&lt;exp&gt;</code> 可以通过 <code>+</code>、<code>-</code>
-运算符连接无穷个 <code>&lt;term&gt;</code>，例如
-<code>&lt;term&gt; + &lt;term&gt; - &lt;term&gt;</code></p>
-<p>表达式 <code>1 + 2 * 3</code> 的解析如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">exp1 = 1 + term1<br>term1 = 2 * 3<br></code></pre></td></tr></table></figure></p>
-<p>这种方法虽然可行，但随着运算符优先级层数的增加，会变的越来越笨重。目前我们已有三个优先级层级（如果将
-<code>&lt;factor&gt;</code>
-计入在内），之后每新增一个优先层级，都需要新定义一个非终结符，且为每个已有的非终结符新增对该非终结符的产生式规则，同时还需要编写新的
-<code>parse</code> 函数。</p>
-<h4 id="precedence-climbing">Precedence Climbing</h4>
-<p>优先级爬升(Precedence Climbing)
-是一个更简洁的解析二元运算符方法。它能够处理形如
-<code>&lt;exp&gt; &lt;binop&gt; &lt;exp&gt;</code>
-的产生式规则，同时正确遵循每个二元运算符的优先级。在优先级爬升方法中，每个运算符都被赋予一个数值型的优先级（precedence
-level），而 <code>parse_exp</code>
-函数在调用时会接收一个最小优先级（minimum precedence
-level）作为参数，接下来的解析部分优先级只能高于这个最小优先级。这样当解析
-<code>1 + 2 * 3</code> 的时候，解析完
-<code>1 +</code>时，在解析右操作数时，可以正确解析 <code>2 * 3</code>
-而不是将 2 作为右操作数。</p>
-<p>我们可以使用优先级爬升来解析二元表达式，同时继续使用递归下降来解析语言中的其他结构。新的形式文法如下：
-<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;factor&gt; | &lt;exp&gt; &lt;binop&gt; &lt;exp&gt;<br>&lt;factor&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;factor&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br>&lt;binop&gt; ::= <span class="hljs-string">&quot;-&quot;</span> | <span class="hljs-string">&quot;+&quot;</span> | <span class="hljs-string">&quot;*&quot;</span> | <span class="hljs-string">&quot;/&quot;</span> | <span class="hljs-string">&quot;%&quot;</span><br></code></pre></td></tr></table></figure></p>
-<p>将之前的 <code>&lt;exp&gt;</code> 重新命名为
-<code>&lt;factor&gt;</code>，因为该符号可以在一个表达式中作为因子出现。唯一区别为，现在
-<code>()</code> 内可以出现二元表达式。这意味着 <code>(1 + 2)</code>
-是一个 <code>&lt;factor&gt;</code>，然而 <code>-1 + 2</code> 不是一个
-<code>&lt;factor&gt;</code> 而是 <code>&lt;exp&gt;</code>，因为
-<code>&lt;unop&gt; &lt;exp&gt;</code> 不是 <code>&lt;factor&gt;</code>
-的产生式规则。</p>
-<p>一个 <code>&lt;exp&gt;</code> 要么是一个二元运算，要么是一个
-<code>&lt;factor&gt;</code>。由于 <code>&lt;exp&gt;</code> 和
-<code>&lt;factor&gt;</code>
-的文法规则相互引用，因此用于解析这两个符号的函数是相互递归（mutually
-recursive）的。但他们都生成相同的 AST 结点，即 <code>exp</code>
-结点。</p>
-<p>解析 <code>factor</code> 的伪代码如下： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_factor(tokens):<br>    next_token = peek(tokens)<br>    if next_token is an int:<br>        --snip--<br>    else if next_token is &quot;~&quot; or &quot;-&quot;:<br>        operator = parse_unop(tokens)<br>        inner_exp = parse_factor(tokens)<br>        return Unary(operator, inner_exp)<br>    else if next_token == &quot;(&quot;:<br>        take_token(tokens)<br>        inner_exp = parse_exp(tokens)<br>        expect(&quot;)&quot;, tokens)<br>        return inner_exp<br>    else:<br>        fail(&quot;Malformed factor&quot;)<br></code></pre></td></tr></table></figure></p>
-<p>和上一张 <code>parse_exp</code> 的代码很像，只是在不同位置调用
-<code>parse_factor</code> 和 <code>parse_exp</code>。</p>
-<p>对于 <code>parse_exp</code>，先考虑一个化简的版本：仅处理
-<code>+</code> 和 <code>-</code>
-运算符，只需要实现左结合。在这种情况下，右操作数只能为
-<code>&lt;factor&gt;</code>。可以使用如下伪代码来处理：
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_exp(tokens):<br>    left = parse_factor(tokens)<br>    next_token = peek(tokens)<br>    while next_token is &quot;+&quot; or &quot;-&quot;:<br>        operator = parse_binop(tokens)<br>        right = parse_factor(tokens)<br>        left = Binary(operator, left, right)<br>        next_token = peek(tokens)<br>    return left<br></code></pre></td></tr></table></figure></p>
-<p>首先处理第一个 <code>factor</code> 作为左操作数，消耗运算符后，通过
-<code>parse_factor</code> 获得下一个
-<code>factor</code>,即右操作数。之后将其封装为 AST
-结点，并该结点作为新的左操作数。</p>
-<p>接下来考虑添加运算符优先级。此时右操作数可能不再是
-<code>factor</code> 而是 <code>exp</code>。考虑
-<code>1 + 2 * 3 + 4</code> 应解析为
-<code>(1 + (2 * 3)) + 4</code>。整个表达式的右操作数为一个
-<code>factor 4</code>。而内部表达式的右操作数为
-<code>exp (2 * 3)</code>。可以发现，如果最外层的运算符为<code>+</code>、<code>-</code>，且右操作数为一个
-<code>exp</code>，则该 <code>exp</code> 中的运算符必须为
-<code>*</code>、<code>/</code>、<code>%</code>。如果最外层运算符为
-<code>*</code>、<code>/</code>、<code>%</code> 时，右操作数必定为一个
-<code>factor</code>。即 <code>e1 &lt;binop&gt; e2</code>
-时，<code>e2</code> 中所有运算符优先级必须严格高于
-<code>&lt;binop&gt;</code>。</p>
-<p>这样就可以在上述伪代码基础上稍作修改，得到完整的
-<code>parse_exp</code> 代码： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_exp(tokens, min_prec):<br>    left = parse_factor(tokens)<br>    next_token = peek(tokens)<br>    while next_token is a binary operator and precedence(next_token) &gt;= min_prec:<br>        operator = parse_binop(tokens)<br>        right = parse_exp(tokens, precedence(next_token) + 1)<br>        left = Binary(operator, left, right)<br>        next_token = peek(tokens)<br>    return left<br></code></pre></td></tr></table></figure></p>
-<p>当 <code>next_token</code> 的优先级高于当前 <code>op</code>(即
-<code>min_prec</code>，当前允许解析的最低优先级)
-的时候，递归解析子表达式作为右操作数。反之，则返回上一级函数调用，执行左结合。</p>
-<p>例如输入 <code>1 + 2 * 3 + 4</code>，假设优先级 <code>*</code> 为
-<span class="math inline">\(20\)</span>，<code>+</code> 为 <span
-class="math inline">\(10\)</span>。 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">parse_exp(1 + 2 * 3 + 4, min_prec=0)<br>  left = parse_factor(1 + 2 * 3 + 4) → 1<br>  peek(+ 2 * 3 + 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 ≥ 0，进入循环<br><br>    operator = &#x27;+&#x27;<br>    right = parse_exp(2 * 3 + 4, min_prec=11)<br>      parse_exp(2 * 3 + 4, 11):<br>        left = parse_factor(2 * 3 + 4) → 2<br>        peek(* 3 + 4) → &#x27;*&#x27;，prec(&#x27;*&#x27;) = 20 ≥ 11，进入循环<br><br>          operator = &#x27;*&#x27;<br>          right = parse_exp(3 + 4, min_prec=21)<br><br>            parse_exp(3 + 4, 21):<br>              left = parse_factor(3 + 4) → 3<br>              peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 &lt; 21，不进入循环<br>              返回 left = 3<br><br>          right = 3<br>          left = (2 * 3)<br>          peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 &lt; 11，不进入循环<br>        返回 left = (2 * 3)<br><br>    right = (2 * 3)<br>    left = (1 + (2 * 3))<br>    peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 ≥ 0，继续循环<br><br>      operator = &#x27;+&#x27;<br>      right = parse_exp(4, min_prec=11)<br><br>        parse_exp(4, 11):<br>          left = parse_factor(4) → 4<br>          peek(EOF) → 无运算符，不进入循环<br>          返回 4<br><br>      right = 4<br>      left = ((1 + (2 * 3)) + 4)<br>      peek(EOF) → 无运算符，退出循环<br><br>  返回 ((1 + (2 * 3)) + 4)<br></code></pre></td></tr></table></figure></p>
-<h2 id="implementation">Implementation</h2>
-<p>函数式语言中，变量不可修改，所以写循环稍微费点劲。通过辅助函数
-<code>parse_exp_loop</code> 通过递归来实现。 <figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs ocaml">parse_exp min_prec tokens =<br>  <span class="hljs-comment">(* like acc in tail recursive, initial value of left-associative *)</span><br>  <span class="hljs-keyword">let</span> initial_factor = parse_factor tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> next_token = <span class="hljs-type">Tok_stream</span>.peek tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> <span class="hljs-keyword">rec</span> parse_exp_loop left token =<br>    <span class="hljs-keyword">match</span> get_precedence token <span class="hljs-keyword">with</span><br>    <span class="hljs-comment">(* 1 + (2 * 3) =&gt; the right subexpression must have higher precedence than</span><br><span class="hljs-comment">       left *)</span><br>    | <span class="hljs-type">Some</span> prec <span class="hljs-keyword">when</span> prec &gt;= min_prec -&gt;<br>        <span class="hljs-keyword">let</span> operator = parse_binop tokens <span class="hljs-keyword">in</span><br>        <span class="hljs-keyword">let</span> right = parse_exp (prec + <span class="hljs-number">1</span>) tokens <span class="hljs-keyword">in</span><br>        <span class="hljs-keyword">let</span> result = <span class="hljs-type">Ast</span>.<span class="hljs-type">Binary</span> (operator, left, right) <span class="hljs-keyword">in</span><br>        parse_exp_loop result (<span class="hljs-type">Tok_stream</span>.peek tokens)<br>    <span class="hljs-comment">(* otherwise, just left-associative *)</span><br>    | _ -&gt; left<br>  <span class="hljs-keyword">in</span><br>  parse_exp_loop initial_factor next_token<br></code></pre></td></tr></table></figure></p>
-<h2 id="ir-generate">IR Generate</h2>
+<p>添加对二元运算符 <code>+</code>、<code>-</code>、<code>*</code>、<code>/</code>、<code>%</code> 的支持。</p>
+<h2 id="Frontent">Frontent</h2>
+<h3 id="Lexer">Lexer</h3>
+<p>新增 4 种 token，<code>Plus</code>、<code>Star</code>、<code>Slash</code>、<code>Percent</code>。<code>-</code> 在 Unary 中已经作为 <code>Hyphen</code> 添加了，在 Lexer 阶段不会区分 token 在语义上的区别。</p>
+<h3 id="Parser">Parser</h3>
+<p>新增 二元表达式 和 二元运算符。定义如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">exp = Constant(int)<br>    | Unary(unary_operator, exp)<br>    | Binary(binary_operator, exp, exp)<br>binary_operator = Add | Subtract | Multiply | Divide | Remainder<br></code></pre></td></tr></table></figure>
+<p>在 Parser 中需要区分 <code>Unary negate</code> 和 <code>Binary Subtract</code>，取决于 <code>Hyphen</code> 在表达式的哪个位置出现。</p>
+<p>二元表达式也可以嵌套，这时需要注意操作符的优先级。例如表达式 <code>1 + 2 * 3</code>，正确的解析应该为 <code>1 + (2 * 3)</code>，对应的 AST 如下。<code>+</code> 的两个操作数应该为 <code>1</code> 和 <code>(2 * 3)</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Binary (Add, <br>        Constant(1),<br>        Binary (Star, Constant(2), Constant(3))<br></code></pre></td></tr></table></figure>
+<p>不区分优先级，很可能解析出如下的 AST吗，即解析为 <code>(1 + 2) * 3</code>，根节点为 <code>*</code>，两个操作数为 <code>(1 + 2)</code> 和 <code>3</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Binary (Multiply,<br>        Binary (Add, Constant(1), Constant(2),<br>        Constant(3))<br></code></pre></td></tr></table></figure>
+<p>同时对于同优先级的运算，应该符合 <strong>左结合律</strong>，即 <code>1 + 2 + 3 + 4</code> 应解析为 <code>((1 + 2) + 3) + 4</code>。</p>
+<p>我们很自然可以写出如下的产生式规则:</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;exp&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span> | &lt;exp&gt; &lt;binop&gt; &lt;exp&gt;<br></code></pre></td></tr></table></figure>
+<p>一个二元表达式包括一个表达式，然后是一个二元运算符，然后是另一个表达式。这确实是正确的形式文法，但是不能正确的通过 <em>递归下降解析器</em> 进行解析。<code>&lt;exp&gt; ::= &lt;exp&gt; &lt;binoop&gt; &lt;exp&gt;</code> 是左递归的，即一个 <strong>非终结符</strong> 出现在最左边第一个位置。当调用 <code>parse_exp</code> 的时候，由于左边第一个符号为 <code>&lt;exp&gt;</code>，会继续调用 <code>parse_exp</code>；此时依然可能满足上述规则，继续调用 <code>parse_exp</code>… <code>parse_exp</code> 在未消耗任何 token 就进行递归，会导致无穷的递归。</p>
+<h4 id="refactor-Grammar">refactor Grammar</h4>
+<p>一种不太讨巧的方法是，通过重写产生式规则来避免左递归。考虑如下的形式文法：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;term&gt; &#123; (<span class="hljs-string">&quot;+&quot;</span> | <span class="hljs-string">&quot;-&quot;</span>) &lt;term&gt; &#125;<br>&lt;term&gt; ::= &lt;factor&gt; &#123; (<span class="hljs-string">&quot;*&quot;</span> | <span class="hljs-string">&quot;/&quot;</span> | <span class="hljs-string">&quot;%&quot;</span>) &lt;factor&gt; &#125;<br>&lt;factor&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;factor&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br></code></pre></td></tr></table></figure>
+<p>将优先级进行分层，定义为不同的非终结符，这样就只有唯一的解析诸如 <code>1 + 2 * 3</code> 的方法，且不会产生左递归。其中花括号表示重复，即一个单独的 <code>&lt;exp&gt;</code> 可以通过 <code>+</code>、<code>-</code> 运算符连接无穷个 <code>&lt;term&gt;</code>，例如 <code>&lt;term&gt; + &lt;term&gt; - &lt;term&gt;</code></p>
+<p>表达式 <code>1 + 2 * 3</code> 的解析如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">exp1 = 1 + term1<br>term1 = 2 * 3<br></code></pre></td></tr></table></figure>
+<p>这种方法虽然可行，但随着运算符优先级层数的增加，会变的越来越笨重。目前我们已有三个优先级层级（如果将 <code>&lt;factor&gt;</code> 计入在内），之后每新增一个优先层级，都需要新定义一个非终结符，且为每个已有的非终结符新增对该非终结符的产生式规则，同时还需要编写新的 <code>parse</code> 函数。</p>
+<h4 id="Precedence-Climbing">Precedence Climbing</h4>
+<p>优先级爬升(Precedence Climbing) 是一个更简洁的解析二元运算符方法。它能够处理形如 <code>&lt;exp&gt; &lt;binop&gt; &lt;exp&gt;</code> 的产生式规则，同时正确遵循每个二元运算符的优先级。在优先级爬升方法中，每个运算符都被赋予一个数值型的优先级（precedence level），而 <code>parse_exp</code> 函数在调用时会接收一个最小优先级（minimum precedence level）作为参数，接下来的解析部分优先级只能高于这个最小优先级。这样当解析 <code>1 + 2 * 3</code> 的时候，解析完 <code>1 + </code>时，在解析右操作数时，可以正确解析 <code>2 * 3</code> 而不是将 2 作为右操作数。</p>
+<p>我们可以使用优先级爬升来解析二元表达式，同时继续使用递归下降来解析语言中的其他结构。新的形式文法如下：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs EBNF">&lt;exp&gt; ::= &lt;factor&gt; | &lt;exp&gt; &lt;binop&gt; &lt;exp&gt;<br>&lt;factor&gt; ::= &lt;int&gt; | &lt;unop&gt; &lt;factor&gt; | <span class="hljs-string">&quot;(&quot;</span> &lt;exp&gt; <span class="hljs-string">&quot;)&quot;</span><br>&lt;binop&gt; ::= <span class="hljs-string">&quot;-&quot;</span> | <span class="hljs-string">&quot;+&quot;</span> | <span class="hljs-string">&quot;*&quot;</span> | <span class="hljs-string">&quot;/&quot;</span> | <span class="hljs-string">&quot;%&quot;</span><br></code></pre></td></tr></table></figure>
+<p>将之前的 <code>&lt;exp&gt;</code> 重新命名为 <code>&lt;factor&gt;</code>，因为该符号可以在一个表达式中作为因子出现。唯一区别为，现在 <code>()</code> 内可以出现二元表达式。这意味着 <code>(1 + 2)</code> 是一个 <code>&lt;factor&gt;</code>，然而 <code>-1 + 2</code> 不是一个 <code>&lt;factor&gt;</code> 而是 <code>&lt;exp&gt;</code>，因为 <code>&lt;unop&gt; &lt;exp&gt;</code> 不是 <code>&lt;factor&gt;</code> 的产生式规则。</p>
+<p>一个 <code>&lt;exp&gt;</code> 要么是一个二元运算，要么是一个 <code>&lt;factor&gt;</code>。由于 <code>&lt;exp&gt;</code> 和 <code>&lt;factor&gt;</code> 的文法规则相互引用，因此用于解析这两个符号的函数是相互递归（mutually recursive）的。但他们都生成相同的 AST 结点，即 <code>exp</code> 结点。</p>
+<p>解析 <code>factor</code> 的伪代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_factor(tokens):<br>    next_token = peek(tokens)<br>    if next_token is an int:<br>        --snip--<br>    else if next_token is &quot;~&quot; or &quot;-&quot;:<br>        operator = parse_unop(tokens)<br>        inner_exp = parse_factor(tokens)<br>        return Unary(operator, inner_exp)<br>    else if next_token == &quot;(&quot;:<br>        take_token(tokens)<br>        inner_exp = parse_exp(tokens)<br>        expect(&quot;)&quot;, tokens)<br>        return inner_exp<br>    else:<br>        fail(&quot;Malformed factor&quot;)<br></code></pre></td></tr></table></figure>
+<p>和上一张 <code>parse_exp</code> 的代码很像，只是在不同位置调用 <code>parse_factor</code> 和 <code>parse_exp</code>。</p>
+<p>对于 <code>parse_exp</code>，先考虑一个化简的版本：仅处理 <code>+</code> 和 <code>-</code> 运算符，只需要实现左结合。在这种情况下，右操作数只能为 <code>&lt;factor&gt;</code>。可以使用如下伪代码来处理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_exp(tokens):<br>    left = parse_factor(tokens)<br>    next_token = peek(tokens)<br>    while next_token is &quot;+&quot; or &quot;-&quot;:<br>        operator = parse_binop(tokens)<br>        right = parse_factor(tokens)<br>        left = Binary(operator, left, right)<br>        next_token = peek(tokens)<br>    return left<br></code></pre></td></tr></table></figure>
+<p>首先处理第一个 <code>factor</code> 作为左操作数，消耗运算符后，通过 <code>parse_factor</code> 获得下一个 <code>factor</code>,即右操作数。之后将其封装为 AST 结点，并该结点作为新的左操作数。</p>
+<p>接下来考虑添加运算符优先级。此时右操作数可能不再是 <code>factor</code> 而是 <code>exp</code>。考虑 <code>1 + 2 * 3 + 4</code> 应解析为 <code>(1 + (2 * 3)) + 4</code>。整个表达式的右操作数为一个 <code>factor 4</code>。而内部表达式的右操作数为 <code>exp (2 * 3)</code>。可以发现，如果最外层的运算符为<code>+</code>、<code>-</code>，且右操作数为一个 <code>exp</code>，则该 <code>exp</code> 中的运算符必须为 <code>*</code>、<code>/</code>、<code>%</code>。如果最外层运算符为 <code>*</code>、<code>/</code>、<code>%</code> 时，右操作数必定为一个 <code>factor</code>。即 <code>e1 &lt;binop&gt; e2</code> 时，<code>e2</code> 中所有运算符优先级必须严格高于 <code>&lt;binop&gt;</code>。</p>
+<p>这样就可以在上述伪代码基础上稍作修改，得到完整的 <code>parse_exp</code> 代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs pseudocode">parse_exp(tokens, min_prec):<br>    left = parse_factor(tokens)<br>    next_token = peek(tokens)<br>    while next_token is a binary operator and precedence(next_token) &gt;= min_prec:<br>        operator = parse_binop(tokens)<br>        right = parse_exp(tokens, precedence(next_token) + 1)<br>        left = Binary(operator, left, right)<br>        next_token = peek(tokens)<br>    return left<br></code></pre></td></tr></table></figure>
+<p>当 <code>next_token</code> 的优先级高于当前 <code>op</code>(即 <code>min_prec</code>，当前允许解析的最低优先级) 的时候，递归解析子表达式作为右操作数。反之，则返回上一级函数调用，执行左结合。</p>
+<p>例如输入 <code>1 + 2 * 3 + 4</code>，假设优先级 <code>*</code> 为 $20$，<code>+</code> 为 $10$。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">parse_exp(1 + 2 * 3 + 4, min_prec=0)<br>  left = parse_factor(1 + 2 * 3 + 4) → 1<br>  peek(+ 2 * 3 + 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 ≥ 0，进入循环<br><br>    operator = &#x27;+&#x27;<br>    right = parse_exp(2 * 3 + 4, min_prec=11)<br>      parse_exp(2 * 3 + 4, 11):<br>        left = parse_factor(2 * 3 + 4) → 2<br>        peek(* 3 + 4) → &#x27;*&#x27;，prec(&#x27;*&#x27;) = 20 ≥ 11，进入循环<br><br>          operator = &#x27;*&#x27;<br>          right = parse_exp(3 + 4, min_prec=21)<br><br>            parse_exp(3 + 4, 21):<br>              left = parse_factor(3 + 4) → 3<br>              peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 &lt; 21，不进入循环<br>              返回 left = 3<br><br>          right = 3<br>          left = (2 * 3)<br>          peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 &lt; 11，不进入循环<br>        返回 left = (2 * 3)<br><br>    right = (2 * 3)<br>    left = (1 + (2 * 3))<br>    peek(+ 4) → &#x27;+&#x27;，prec(&#x27;+&#x27;) = 10 ≥ 0，继续循环<br><br>      operator = &#x27;+&#x27;<br>      right = parse_exp(4, min_prec=11)<br><br>        parse_exp(4, 11):<br>          left = parse_factor(4) → 4<br>          peek(EOF) → 无运算符，不进入循环<br>          返回 4<br><br>      right = 4<br>      left = ((1 + (2 * 3)) + 4)<br>      peek(EOF) → 无运算符，退出循环<br><br>  返回 ((1 + (2 * 3)) + 4)<br></code></pre></td></tr></table></figure>
+<h2 id="Implementation">Implementation</h2>
+<p>函数式语言中，变量不可修改，所以写循环稍微费点劲。通过辅助函数 <code>parse_exp_loop</code> 通过递归来实现。</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs ocaml">parse_exp min_prec tokens =<br>  <span class="hljs-comment">(* like acc in tail recursive, initial value of left-associative *)</span><br>  <span class="hljs-keyword">let</span> initial_factor = parse_factor tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> next_token = <span class="hljs-type">Tok_stream</span>.peek tokens <span class="hljs-keyword">in</span><br>  <span class="hljs-keyword">let</span> <span class="hljs-keyword">rec</span> parse_exp_loop left token =<br>    <span class="hljs-keyword">match</span> get_precedence token <span class="hljs-keyword">with</span><br>    <span class="hljs-comment">(* 1 + (2 * 3) =&gt; the right subexpression must have higher precedence than</span><br><span class="hljs-comment">       left *)</span><br>    | <span class="hljs-type">Some</span> prec <span class="hljs-keyword">when</span> prec &gt;= min_prec -&gt;<br>        <span class="hljs-keyword">let</span> operator = parse_binop tokens <span class="hljs-keyword">in</span><br>        <span class="hljs-keyword">let</span> right = parse_exp (prec + <span class="hljs-number">1</span>) tokens <span class="hljs-keyword">in</span><br>        <span class="hljs-keyword">let</span> result = <span class="hljs-type">Ast</span>.<span class="hljs-type">Binary</span> (operator, left, right) <span class="hljs-keyword">in</span><br>        parse_exp_loop result (<span class="hljs-type">Tok_stream</span>.peek tokens)<br>    <span class="hljs-comment">(* otherwise, just left-associative *)</span><br>    | _ -&gt; left<br>  <span class="hljs-keyword">in</span><br>  parse_exp_loop initial_factor next_token<br></code></pre></td></tr></table></figure>
+<h2 id="IR-Generate">IR Generate</h2>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs ASDL">program = Program(function_definition)<br>function_definition = Function(identifier, instruction* body)<br>instruction = Return(val)<br>            | Unary(unary_operator, val src, val dst)<br>            | Binary(binary_operator, val src1, val src2, val dst)<br>val = Constant(int) | Var(identifier)<br>unary_operator = Complement | Negate<br>binary_operator = Add | Subtract | Multiply | Divide | Remainder<br></code></pre></td></tr></table></figure>
-<p>将 AST 中的二元表达式转换为 TACKY
-指令序列的过程与处理一元表达式非常相似，只是现在需要处理两个操作数。指令结构：<code>Binary(binary_operator, val src1, val src2, val dst)</code>。</p>
-<p>转换为 TACKY 代码也和一元运算符类似。首先生成 TACKY
-指令来分别评估第一个操作数 <code>e1</code> 和第二个操作数
-<code>e2</code>。之后调用 <code>make_temporary()</code>
-生成一个新的临时变量作为运算结果的目标地址（<code>dst</code>）。将转换后的二元运算符、两个操作数的值以及目标地址封装成一条
-<code>Binary</code>
-指令，并添加到指令序列中。最后返回该临时变量，供上层表达式使用 。</p>
+<p>将 AST 中的二元表达式转换为 TACKY 指令序列的过程与处理一元表达式非常相似，只是现在需要处理两个操作数。指令结构：<code>Binary(binary_operator, val src1, val src2, val dst) </code>。</p>
+<p>转换为 TACKY 代码也和一元运算符类似。首先生成 TACKY 指令来分别评估第一个操作数 <code>e1</code> 和第二个操作数 <code>e2</code>。之后调用 <code>make_temporary()</code> 生成一个新的临时变量作为运算结果的目标地址（<code>dst</code>）。将转换后的二元运算符、两个操作数的值以及目标地址封装成一条 <code>Binary</code> 指令，并添加到指令序列中。最后返回该临时变量，供上层表达式使用 。</p>
 
                 
               </div>

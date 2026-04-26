@@ -21,12 +21,12 @@
   <meta name="author" content="江欣婷">
   <meta name="keywords" content="">
   
-    <meta name="description" content="本实验旨在通过修改 xv6 的缺页异常处理机制，实现内存的懒分配（Lazy Allocation）。当用户调用 sbrk() 时不立即分配物理内存，而是延迟到发生 Page Fault 时才按需分配。   1. 实验目标 (Goal) 传统的 sbrk() 系统调用会立即分配物理内存并映射页表。本实验要求： 1. 修改 sys_sbrk()，仅增加进程的 sz 而不实际分配内存。 2. 在 us">
+    <meta name="description" content="本实验旨在通过修改 xv6 的缺页异常处理机制，实现内存的懒分配（Lazy Allocation）。当用户调用 sbrk() 时不立即分配物理内存，而是延迟到发生 Page Fault 时才按需分配。   1. 实验目标 (Goal) 传统的 sbrk() 系统调用会立即分配物理内存并映射页表。本实验要求：  修改 sys_sbrk()，仅增加进程的 sz 而不实际分配内存。 在 usertra">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 lab6：Lazy alloc | 懒加载">
 <meta property="og:url" content="https://acmicpc.top/2024/03/22/MIT-6.S081-lab07/index.html">
 <meta property="og:site_name" content="江欣婷&#39;s博客">
-<meta property="og:description" content="本实验旨在通过修改 xv6 的缺页异常处理机制，实现内存的懒分配（Lazy Allocation）。当用户调用 sbrk() 时不立即分配物理内存，而是延迟到发生 Page Fault 时才按需分配。   1. 实验目标 (Goal) 传统的 sbrk() 系统调用会立即分配物理内存并映射页表。本实验要求： 1. 修改 sys_sbrk()，仅增加进程的 sz 而不实际分配内存。 2. 在 us">
+<meta property="og:description" content="本实验旨在通过修改 xv6 的缺页异常处理机制，实现内存的懒分配（Lazy Allocation）。当用户调用 sbrk() 时不立即分配物理内存，而是延迟到发生 Page Fault 时才按需分配。   1. 实验目标 (Goal) 传统的 sbrk() 系统调用会立即分配物理内存并映射页表。本实验要求：  修改 sys_sbrk()，仅增加进程的 sz 而不实际分配内存。 在 usertra">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-03-22T09:46:00.000Z">
 <meta property="article:modified_time" content="2026-04-11T05:06:34.287Z">
@@ -244,7 +244,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          451 字
+          448 字
         
       </span>
     
@@ -307,30 +307,27 @@
               <div class="markdown-body">
                 
                 <blockquote>
-<p>本实验旨在通过修改 xv6 的缺页异常处理机制，实现内存的懒分配（Lazy
-Allocation）。当用户调用 <code>sbrk()</code>
-时不立即分配物理内存，而是延迟到发生 Page Fault 时才按需分配。</p>
+<p>本实验旨在通过修改 xv6 的缺页异常处理机制，实现内存的懒分配（Lazy Allocation）。当用户调用 <code>sbrk()</code> 时不立即分配物理内存，而是延迟到发生 Page Fault 时才按需分配。</p>
 </blockquote>
-<hr />
-<h2 id="实验目标-goal">1. 实验目标 (Goal)</h2>
-<p>传统的 <code>sbrk()</code>
-系统调用会立即分配物理内存并映射页表。本实验要求： 1. 修改
-<code>sys_sbrk()</code>，仅增加进程的 <code>sz</code> 而不实际分配内存。
-2. 在 <code>usertrap()</code> 中捕获页错误（Page Fault）。 3.
-动态分配物理页并建立映射，使程序恢复运行。</p>
-<hr />
-<h2 id="核心实现-implementation">2. 核心实现 (Implementation)</h2>
-<h3 id="修改-sys_sbrk">2.1 修改 sys_sbrk</h3>
-<p>在 <code>sysproc.c</code> 中，将 <code>growproc</code>
-的调用改为简单的指针增加。</p>
+<hr>
+<h2 id="1-实验目标-Goal">1. 实验目标 (Goal)</h2>
+<p>传统的 <code>sbrk()</code> 系统调用会立即分配物理内存并映射页表。本实验要求：</p>
+<ol>
+<li>修改 <code>sys_sbrk()</code>，仅增加进程的 <code>sz</code> 而不实际分配内存。</li>
+<li>在 <code>usertrap()</code> 中捕获页错误（Page Fault）。</li>
+<li>动态分配物理页并建立映射，使程序恢复运行。</li>
+</ol>
+<hr>
+<h2 id="2-核心实现-Implementation">2. 核心实现 (Implementation)</h2>
+<h3 id="2-1-修改-sys-sbrk">2.1 修改 sys_sbrk</h3>
+<p>在 <code>sysproc.c</code> 中，将 <code>growproc</code> 的调用改为简单的指针增加。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// kernel/sysproc.c</span><br>uint64<br><span class="hljs-title function_">sys_sbrk</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-type">int</span> n;<br>  uint64 addr;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br><br>  <span class="hljs-keyword">if</span>(argint(<span class="hljs-number">0</span>, &amp;n) &lt; <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  addr = p-&gt;sz;<br>  <br>  <span class="hljs-comment">// Lazy allocation: 仅仅移动指针，不调用 growproc(n)</span><br>  <span class="hljs-keyword">if</span> (n &gt; <span class="hljs-number">0</span>) &#123;<br>    p-&gt;sz += n;<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (n &lt; <span class="hljs-number">0</span>) &#123;<br>    p-&gt;sz = growproc(n);<br>  &#125;<br>  <span class="hljs-keyword">return</span> addr;<br>&#125;<br><br>### <span class="hljs-number">2.2</span> 修改 usertrap 处理缺页<br>```C<br><span class="hljs-comment">// kernel/trap.c</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">usertrap</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  uint64 cause = r_scause();<br>  <span class="hljs-keyword">if</span>(cause == <span class="hljs-number">13</span> || cause == <span class="hljs-number">15</span>) &#123;<br>    uint64 va = r_stval(); <span class="hljs-comment">// 触发错误的虚拟地址</span><br>    <br>    <span class="hljs-comment">// 边界检查：防止访问超出 p-&gt;sz 或在栈以下的非法地址</span><br>    <span class="hljs-keyword">if</span>(va &gt;= p-&gt;sz || va &lt; PGROUNDDOWN(p-&gt;trapframe-&gt;sp)) &#123;<br>      p-&gt;killed = <span class="hljs-number">1</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      <span class="hljs-keyword">if</span>(lazy_alloc(va) != <span class="hljs-number">0</span>) &#123;<br>        p-&gt;killed = <span class="hljs-number">1</span>;<br>      &#125;<br>    &#125;<br>  &#125; <br>  <span class="hljs-comment">// ... 其他逻辑 ...</span><br>&#125;<br></code></pre></td></tr></table></figure>
-<h3 id="实现-lazy_alloc-函数">2.3 实现 lazy_alloc 函数</h3>
-<p>封装一个简单的分配函数，模仿 <code>uvmalloc</code>。
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">// kernel/vm.c</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">lazy_alloc</span><span class="hljs-params">(uint64 va)</span> &#123;<br>  <span class="hljs-type">char</span> *mem;<br>  uint64 a = PGROUNDDOWN(va);<br>  <br>  mem = kalloc();<br>  <span class="hljs-keyword">if</span>(mem == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  <br>  <span class="hljs-built_in">memset</span>(mem, <span class="hljs-number">0</span>, PGSIZE);<br>  <span class="hljs-keyword">if</span>(mappages(myproc()-&gt;pagetable, a, PGSIZE, (uint64)mem, PTE_W|PTE_U|PTE_R) != <span class="hljs-number">0</span>)&#123;<br>    kfree(mem);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
-<h3 id="处理边缘情况">2.4 处理边缘情况</h3>
-<p>在 <code>uvmunmap</code> 中，如果遇到 PTE 不存在或 PTE_V 为0的页，在
-Lazy 模式下是正常的，不应该 <code>panic</code>。同理处理
-<code>fork</code> 中的逻辑。 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// kernel/vm.c -&gt; uvmunmap</span><br><span class="hljs-keyword">if</span>((pte = walk(pagetable, a, <span class="hljs-number">0</span>)) == <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// 原为 panic</span><br><span class="hljs-keyword">if</span>((*pte &amp; PTE_V) == <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// 原为 panic</span><br></code></pre></td></tr></table></figure></p>
+<h3 id="2-3-实现-lazy-alloc-函数">2.3 实现 lazy_alloc 函数</h3>
+<p>封装一个简单的分配函数，模仿 <code>uvmalloc</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">// kernel/vm.c</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">lazy_alloc</span><span class="hljs-params">(uint64 va)</span> &#123;<br>  <span class="hljs-type">char</span> *mem;<br>  uint64 a = PGROUNDDOWN(va);<br>  <br>  mem = kalloc();<br>  <span class="hljs-keyword">if</span>(mem == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  <br>  <span class="hljs-built_in">memset</span>(mem, <span class="hljs-number">0</span>, PGSIZE);<br>  <span class="hljs-keyword">if</span>(mappages(myproc()-&gt;pagetable, a, PGSIZE, (uint64)mem, PTE_W|PTE_U|PTE_R) != <span class="hljs-number">0</span>)&#123;<br>    kfree(mem);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="2-4-处理边缘情况">2.4 处理边缘情况</h3>
+<p>在 <code>uvmunmap</code> 中，如果遇到 PTE 不存在或 PTE_V 为0的页，在 Lazy 模式下是正常的，不应该 <code>panic</code>。同理处理 <code>fork</code> 中的逻辑。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// kernel/vm.c -&gt; uvmunmap</span><br><span class="hljs-keyword">if</span>((pte = walk(pagetable, a, <span class="hljs-number">0</span>)) == <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// 原为 panic</span><br><span class="hljs-keyword">if</span>((*pte &amp; PTE_V) == <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// 原为 panic</span><br></code></pre></td></tr></table></figure>
 
                 
               </div>
